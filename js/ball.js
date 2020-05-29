@@ -49,5 +49,5 @@ function draw_ball(){
 
 	// addMesh(vert5, norm5, ind5, color5);
 
-    return [vert5, norm5, ind5, color5];
+    return [vert5.flat(1), norm5.flat(1), ind5.flat(1), color5];
 }

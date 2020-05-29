@@ -5,15 +5,31 @@
 
 var utils={
 
+createAndCompileShaders:function(gl, shaderText) {
+
+  var vertexShader = utils.createShader(gl, gl.VERTEX_SHADER, shaderText[0]);
+  var fragmentShader = utils.createShader(gl, gl.FRAGMENT_SHADER, shaderText[1]);
+
+  var program = utils.createProgram(gl, vertexShader, fragmentShader);
+
+  return program;
+},
+
 createShader:function(gl, type, source) {
   var shader = gl.createShader(type);
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
   var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
-  if (success) {    
+  if (success) {
     return shader;
   }else{
     console.log(gl.getShaderInfoLog(shader));  // eslint-disable-line
+    if(type == gl.VERTEX_SHADER){
+    	alert("ERROR IN VERTEX SHADER : " + gl.getShaderInfoLog(vertexShader));
+    }
+    if(type == gl.FRAGMENT_SHADER){
+    	alert("ERROR IN FRAGMENT SHADER : " + gl.getShaderInfoLog(vertexShader));
+    }
     gl.deleteShader(shader);
     throw "could not compile shader:" + gl.getShaderInfoLog(shader);
   }
@@ -41,7 +57,7 @@ createProgram:function(gl, vertexShader, fragmentShader) {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       console.log(canvas.width+" "+window.innerWidth);
-        
+
     };
     expandFullScreen();
     // Resize screen when the browser has triggered the resize event
@@ -61,8 +77,8 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 		//send the request
 		xmlHttp.send();
 	},
-	
-	//function to convert decimal value of colors 
+
+	//function to convert decimal value of colors
 	decimalToHex: function(d, padding) {
 		var hex = Number(d).toString(16);
 		padding = typeof (padding) === "undefined" || padding === null ? padding = 2 : padding;
@@ -73,13 +89,13 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 
 		return hex;
 	},
-	
-	
-	
-	
-	
-	
-//*** SHADERS UTILS	
+
+
+
+
+
+
+//*** SHADERS UTILS
 	/*Function to load a shader's code, compile it and return the handle to it
 	Requires:
 		path to the shader's text (url)
@@ -94,17 +110,17 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 		// Hook the event that gets called as the request progresses
 		request.onreadystatechange = function () {
 			// If the request is "DONE" (completed or failed) and if we got HTTP status 200 (OK)
-			
-				
+
+
 			if (request.readyState == 4 && request.status == 200) {
 					callback(request.responseText, data)
 				//} else { // Failed
 				//	errorCallback(url);
 			}
-			
+
 		};
 
-		request.send(null);    
+		request.send(null);
 	},
 
 	loadFiles: function (urls, callback, errorCallback) {
@@ -127,7 +143,28 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 			this.loadFile(urls[i], i, partialCallback, errorCallback);
 		}
 	},
-	
+
+	// loadFiles: function (urls, gl, callback, errorCallback) {
+ //    var numUrls = urls.length;
+ //    var numComplete = 0;
+ //    var result = [];
+
+	// 	// Callback for a single file
+	// 	function partialCallback(text, urlIndex) {
+	// 		result[urlIndex] = text;
+	// 		numComplete++;
+
+	// 		// When all files have downloaded
+	// 		if (numComplete == numUrls) {
+	// 			callback(gl,result);
+	// 		}
+	// 	}
+
+	// 	for (var i = 0; i < numUrls; i++) {
+	// 		this.loadFile(urls[i], i, partialCallback, errorCallback);
+	// 	}
+	// },
+
 // *** TEXTURE UTILS (to solve problems with non power of 2 textures in webGL
 
 	getTexture: function(context, image_URL){
@@ -139,22 +176,22 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 		image.onload=function(e) {
 
 			var texture=context.createTexture();
-			
+
 			context.bindTexture(context.TEXTURE_2D, texture);
-			
+
 			context.texImage2D(context.TEXTURE_2D, 0, context.RGBA, context.RGBA, context.UNSIGNED_BYTE, image);
 			//context.pixelStorei(context.UNPACK_FLIP_Y_WEBGL, 1);
-			context.texParameteri(context.TEXTURE_2D, context.TEXTURE_WRAP_S, context.CLAMP_TO_EDGE); 
+			context.texParameteri(context.TEXTURE_2D, context.TEXTURE_WRAP_S, context.CLAMP_TO_EDGE);
 			context.texParameteri(context.TEXTURE_2D, context.TEXTURE_WRAP_T, context.CLAMP_TO_EDGE);
 			context.texParameteri(context.TEXTURE_2D, context.TEXTURE_MAG_FILTER, context.LINEAR);
 			context.texParameteri(context.TEXTURE_2D, context.TEXTURE_MIN_FILTER, context.NEAREST_MIPMAP_LINEAR);
 			context.generateMipmap(context.TEXTURE_2D);
-			
+
 			context.bindTexture(context.TEXTURE_2D, null);
 			image.webglTexture=texture;
 			image.isLoaded=true;
 		};
-		
+
 		image.src=image_URL;
 
 	return image;
@@ -173,18 +210,18 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 		}
 		return x + 1;
 	},
-		
-	
-//*** Interaction UTILS	
+
+
+//*** Interaction UTILS
 	initInteraction: function(){
 		var keyFunction =function(e) {
-			
+
 			if (e.keyCode == 37) {	// Left arrow
 				cx-=delta;
 			}
 			if (e.keyCode == 39) {	// Right arrow
 				cx+=delta;
-			}	
+			}
 			if (e.keyCode == 38) {	// Up arrow
 				cz-=delta;
 			}
@@ -197,29 +234,29 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 			if (e.keyCode == 109) {	// Subtract
 				cy-=delta;
 			}
-			
+
 			if (e.keyCode == 65) {	// a
 				angle-=delta*10.0;
 			}
 			if (e.keyCode == 68) {	// d
 				angle+=delta*10.0;
-			}	
+			}
 			if (e.keyCode == 87) {	// w
 				elevation+=delta*10.0;
 			}
 			if (e.keyCode == 83) {	// s
 				elevation-=delta*10.0;
 			}
-			
+
 		}
 		//'window' is a JavaScript object (if "canvas", it will not work)
-		window.addEventListener("keyup", keyFunction, false);		
+		window.addEventListener("keyup", keyFunction, false);
 	},
-	
-	
-	
-	
-	
+
+
+
+
+
 //*** MATH LIBRARY
 
 	degToRad: function(angle){
@@ -250,12 +287,23 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 
 	// Multiply the mat3 with a vec3.
 	multiplyMatrix3Vector3: function(m, a) {
-	
+
 		out = [];
 		var x = a[0], y = a[1], z = a[2];
 		out[0] = x * m[0] + y * m[1] + z * m[2];
 		out[1] = x * m[3] + y * m[4] + z * m[5];
 		out[2] = x * m[6] + y * m[7] + z * m[8];
+		return out;
+	},
+
+	normalizeVec3 : function(a) {
+
+		out = [];
+		var normV = Math.sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2]);
+		out[0] = a[0]/normV;
+		out[1] = a[1]/normV;
+		out[2] = a[2]/normV;
+
 		return out;
 	},
 	
