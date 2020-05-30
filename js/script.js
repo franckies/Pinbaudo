@@ -9,6 +9,7 @@ var b_indices, t_indices, p_indices;
 var b_vertices, t_vertices, p_vertices;
 var b_normals, t_normals, p_normals;
 var ballMaterialColor, tableMaterialColor, palette1MaterialColor, palette2MaterialColor;
+var lastUpdateTime, currentTime;
 
 var matrixLocation;
 var perspectiveMatrix, projectionMatrix, viewMatrix;
@@ -19,8 +20,8 @@ var lightDirectionHandle;
 var materialDiffColorHandle;
 
 //animation variables
-var p1_rot = -150.0;
-var p2_rot = 150.0;
+var p1_rot = -45.0;
+var p2_rot = -45.0;
 }
 
 {//Shader
@@ -60,7 +61,7 @@ void main() {
 function main(){
 
     {//Lights
-    var dirLightAlpha = -utils.degToRad(120);
+    var dirLightAlpha = -utils.degToRad(90);
     var dirLightBeta  = -utils.degToRad(0);
 
     directionalLight = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
@@ -70,12 +71,24 @@ function main(){
     directionalLightColor = [0.1, 1.0, 1.0];}
 
     //objects vertices , normals and indices definition
-    [b_vertices, b_normals, b_indices] = draw_ball();
-    [t_vertices, t_normals, t_indices] = draw_par(15.0, 0.5, 20.0);
-    [p_vertices, p_normals, p_indices] = draw_par(3.0, 0.1, 1.0);
+    var ball = new Item(draw_ball(), [0.0,0.0,0.0]);
+    var table = new Item(draw_par(15.0, 0.5, 20.0), [1.0,0.65,0.0]);
+    var paletteL = new Item(draw_par(3.0, 0.3, 1.0), [1.0, 1.0, 1.0]);
+    var paletteR = new Item(draw_par(3.0, 0.3, 1.0), [1.0, 1.0, 1.0]);
+
+    //Objects position, rotation, scaling and color definition
+    // Sphere
+    ball.set_pos(utils.MakeWorld( 0.0, 2.0, 18.0, 0.0, 0.0, 0.0, 1.0));
+    // Table
+    table.set_pos(utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0));
+
+
+    // [b_vertices, b_normals, b_indices] = draw_ball();
+    // [t_vertices, t_normals, t_indices] = draw_par(15.0, 0.5, 20.0);
+    // [p_vertices, p_normals, p_indices] = draw_par(3.0, 0.3, 1.0);
 
     //For animation
-    /*var lastUpdateTime = (new Date).getTime();*/
+    var lastUpdateTime = (new Date).getTime();
 
     {//Canvas
     canvas = document.getElementById("c");
@@ -110,38 +123,38 @@ function main(){
     gl.bindVertexArray(b_vao);
     var b_positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, b_positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(b_vertices), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ball.vert), gl.STATIC_DRAW);
     gl.enableVertexAttribArray(positionAttributeLocation);
     gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
 
     var b_normalBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, b_normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(b_normals), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ball.norm), gl.STATIC_DRAW);
     gl.enableVertexAttribArray(normalAttributeLocation);
     gl.vertexAttribPointer(normalAttributeLocation, 3, gl.FLOAT, false, 0, 0);
 
     var b_indexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, b_indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(b_indices), gl.STATIC_DRAW);}
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(ball.ind), gl.STATIC_DRAW);}
 
     {//Passing table's params to shader
     t_vao = gl.createVertexArray();
     gl.bindVertexArray(t_vao);
     var t_positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, t_positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(t_vertices), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(table.vert), gl.STATIC_DRAW);
     gl.enableVertexAttribArray(positionAttributeLocation);
     gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
 
     var t_normalBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, t_normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(t_normals), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(table.norm), gl.STATIC_DRAW);
     gl.enableVertexAttribArray(normalAttributeLocation);
     gl.vertexAttribPointer(normalAttributeLocation, 3, gl.FLOAT, false, 0, 0);
 
     var t_indexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, t_indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(t_indices), gl.STATIC_DRAW);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(table.ind), gl.STATIC_DRAW);
 }
 
     {//Passing palette's params to Shader
@@ -149,140 +162,282 @@ function main(){
     gl.bindVertexArray(p_vao);
     var p_positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, p_positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(p_vertices), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(paletteR.vert), gl.STATIC_DRAW);
     gl.enableVertexAttribArray(positionAttributeLocation);
     gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
 
     var p_normalBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, p_normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(p_normals), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(paletteR.norm), gl.STATIC_DRAW);
     gl.enableVertexAttribArray(normalAttributeLocation);
     gl.vertexAttribPointer(normalAttributeLocation, 3, gl.FLOAT, false, 0, 0);
 
     var p_indexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, p_indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(p_indices), gl.STATIC_DRAW);}
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(paletteR.ind), gl.STATIC_DRAW);}
 
     drawScene();
 
-    //function animate(){
-  //       var currentTime = (new Date).getTime();
-  //       if(lastUpdateTime){
-  //           var deltaX = (30 * (currentTime - lastUpdateTime)) / 1000.0;
-  //
-  //           ballX += deltaX;
-  //           ballY += deltaY;
-  //           ballZ += deltaZ;
-  //
-  //
-  //   }
-  //   cubeWorldMatrix[3] = utils.MakeWorld( 0.0, 0.0, 0.0, cubeRx, cubeRy, cubeRz, cubeS);
-  //
-  //   lastUpdateTime = currentTime;
-  // }
+    function animate(){
+    currentTime = (new Date).getTime();
+    let deltaR = (350 * (currentTime - lastUpdateTime)) / 1000.0;
+    if(lastUpdateTime){
+        if (p1UP){
+            p1_rot = Math.min(30, p1_rot+deltaR);
+        } else {
+            p1_rot = Math.max(-45, p1_rot-deltaR);
+        }
 
+        if (p2UP){
+            p2_rot = Math.min(30, p2_rot+deltaR);
+        } else {
+            p2_rot = Math.max(-45, p2_rot-deltaR);
+        }
+
+    }
+    paletteL.set_pos(utils.multiplyMatrices(utils.MakeWorld(-4.2, 2.0, 16.5, 0.0, 0.0, 0.0, 1.0),
+    utils.multiplyMatrices(utils.MakeTranslateMatrix(-1.5,0.0,0.0),
+        utils.multiplyMatrices(utils.MakeRotateYMatrix(-p1_rot), utils.MakeTranslateMatrix(1.5,0.0,0.0)))));
+
+    paletteR.set_pos(utils.multiplyMatrices(utils.MakeWorld(4.2, 2.0, 16.5, 0.0, 0.0, 0.0, 1.0),
+    utils.multiplyMatrices(utils.MakeTranslateMatrix(1.5,0.0,0.0),
+        utils.multiplyMatrices(utils.MakeRotateYMatrix(p2_rot), utils.MakeTranslateMatrix(-1.5,0.0,0.0)))));
+
+    lastUpdateTime = currentTime;
+    }
+
+
+    function drawScene() {
+        animate();
+
+        gl.clearColor(0.85, 0.85, 0.85, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        // Camera setting
+        var viewMatrix = utils.MakeView(0.0, 10.0, 25.0, -40.0, 0.0);
+
+        {//Ball rendering
+        var worldViewMatrix = utils.multiplyMatrices(viewMatrix, ball.worldM);
+        var projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
+
+        //need to transform light differently for each object
+        // inverse transpose of the inverse of the world matrix is just the transpose
+        var lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(ball.worldM));
+        var directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
+        gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
+
+        gl.uniform3fv(materialDiffColorHandle, ball.col);
+
+        gl.uniform3fv(lightColorHandle,  directionalLightColor);
+        gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
+
+        gl.bindVertexArray(b_vao);
+        gl.drawElements(gl.TRIANGLES, (ball.ind).length, gl.UNSIGNED_SHORT, 0 );}
+
+        {//Table rendering
+        worldViewMatrix = utils.multiplyMatrices(viewMatrix, table.worldM);
+        projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
+        lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(table.worldM));
+        directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
+        gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
+
+        gl.uniform3fv(materialDiffColorHandle, table.col);
+
+        gl.uniform3fv(lightColorHandle,  directionalLightColor);
+        gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
+
+        gl.bindVertexArray(t_vao);
+
+        gl.drawElements(gl.TRIANGLES, (table.ind).length, gl.UNSIGNED_SHORT, 0 );
+        }
+
+        {//Palette rendering
+        for(i = 0; i < 2; i++) {
+            p = (i==0)?paletteL:paletteR;
+            worldViewMatrix = utils.multiplyMatrices(viewMatrix, p.worldM);
+            projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
+            lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(p.worldM));
+            directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
+            gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
+
+            gl.uniform3fv(materialDiffColorHandle, p.col);
+
+            gl.uniform3fv(lightColorHandle,  directionalLightColor);
+            gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
+
+            gl.bindVertexArray(p_vao);
+
+            gl.drawElements(gl.TRIANGLES, (paletteR.ind).length, gl.UNSIGNED_SHORT, 0 );
+        }
+        }
+
+        window.requestAnimationFrame(drawScene);
+        }
 }
 
-function drawScene()
-{
-  {//Objects position, rotation, scaling and color definition
-  // Sphere
-  object_matrix[0] = utils.MakeWorld( 0.0, 2.0, 18.0, 0.0, 0.0, 0.0, 1.0);
-  ballMaterialColor = [0.5, 0.5, 0.5];
 
-  // Table
-  object_matrix[1] = utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
-  tableMaterialColor = [0.5, 0.5, 0.5];
+// function animate(){
+//     currentTime = (new Date).getTime();
+//     let deltaR = (350 * (currentTime - lastUpdateTime)) / 1000.0;
+//     if(lastUpdateTime){
+//         if (p1UP){
+//             p1_rot = Math.min(30, p1_rot+deltaR);
+//         } else {
+//             p1_rot = Math.max(-45, p1_rot-deltaR);
+//         }
+//
+//         if (p2UP){
+//             p2_rot = Math.min(30, p2_rot+deltaR);
+//         } else {
+//             p2_rot = Math.max(-45, p2_rot-deltaR);
+//         }
+//
+//     }
+//     object_matrix[2] = utils.multiplyMatrices(utils.MakeWorld(-4.2, 2.0, 16.5, 0.0, 0.0, 0.0, 1.0),
+//     utils.multiplyMatrices(utils.MakeTranslateMatrix(-1.5,0.0,0.0),
+//         utils.multiplyMatrices(utils.MakeRotateYMatrix(-p1_rot), utils.MakeTranslateMatrix(1.5,0.0,0.0))));
+//
+//     object_matrix[3] = utils.multiplyMatrices(utils.MakeWorld(4.2, 2.0, 16.5, 0.0, 0.0, 0.0, 1.0),
+//     utils.multiplyMatrices(utils.MakeTranslateMatrix(1.5,0.0,0.0),
+//         utils.multiplyMatrices(utils.MakeRotateYMatrix(p2_rot), utils.MakeTranslateMatrix(-1.5,0.0,0.0))));
+//
+//     lastUpdateTime = currentTime;
+// }
 
-  //Palette
-  object_matrix[2] = utils.MakeWorld(-4.2, 2.0, 18.0, p1_rot, 0.0, 0.0, 1.0);
-  palette1MaterialColor =  [1.0, 0.0, 0.0];
-
-  //Palette
-  object_matrix[3] = utils.MakeWorld(4.2, 2.0, 18.0, p2_rot, 0.0, 0.0, 1.0);
-  palette2MaterialColor =  [1.0, 0.0, 0.0];}
-
-  // Camera setting
-  var viewMatrix = utils.MakeView(0.0, 10.0, 25.0, -30.0, 0.0);
-
-  {//Ball rendering
-  var worldViewMatrix = utils.multiplyMatrices(viewMatrix, object_matrix[0]);
-  var projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
-
-  //need to transform light differently for each object
-  // inverse transpose of the inverse of the world matrix is just the transpose
-  var lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(object_matrix[0]));
-  var directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
-  gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
-
-  gl.uniform3fv(materialDiffColorHandle, ballMaterialColor);
-
-  gl.uniform3fv(lightColorHandle,  directionalLightColor);
-  gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
-
-  gl.bindVertexArray(b_vao);
-  gl.drawElements(gl.TRIANGLES, b_indices.length, gl.UNSIGNED_SHORT, 0 );}
-
-  {//Table rendering
-  worldViewMatrix = utils.multiplyMatrices(viewMatrix, object_matrix[1]);
-  projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
-  lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(object_matrix[1]));
-  directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
-  gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
-
-  gl.uniform3fv(materialDiffColorHandle, tableMaterialColor);
-
-  gl.uniform3fv(lightColorHandle,  directionalLightColor);
-  gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
-
-  gl.bindVertexArray(t_vao);
-
-  gl.drawElements(gl.TRIANGLES, t_indices.length, gl.UNSIGNED_SHORT, 0 );
-}
-
-  {//Palette rendering
-  for(i = 2; i < 4; i++)
-  {
-    worldViewMatrix = utils.multiplyMatrices(viewMatrix, object_matrix[i]);
-    projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
-    lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(object_matrix[i]));
-    directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
-    gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
-
-    gl.uniform3fv(materialDiffColorHandle, tableMaterialColor);
-
-    gl.uniform3fv(lightColorHandle,  directionalLightColor);
-    gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
-
-    gl.bindVertexArray(p_vao);
-
-    gl.drawElements(gl.TRIANGLES, p_indices.length, gl.UNSIGNED_SHORT, 0 );
-  }}
-
-  window.requestAnimationFrame(drawScene);
-}
+// function drawScene()
+// {
+//     animate();
+//   {//Objects position, rotation, scaling and color definition
+//   // Sphere
+//   object_matrix[0] = utils.MakeWorld( 0.0, 2.0, 18.0, 0.0, 0.0, 0.0, 1.0);
+//   ballMaterialColor = [0.5, 0.5, 0.5];
+//
+//   // Table
+//   object_matrix[1] = utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+//   tableMaterialColor = [0.5, 0.5, 0.5];
+//
+//   //Palette
+//   paletteMaterialColor =  [1.0, 1.0, 0.0];
+//
+//   //Palette
+//
+//   // Camera setting
+//   var viewMatrix = utils.MakeView(0.0, 10.0, 25.0, -40.0, 0.0);
+//
+//   {//Ball rendering
+//   var worldViewMatrix = utils.multiplyMatrices(viewMatrix, object_matrix[0]);
+//   var projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
+//
+//   //need to transform light differently for each object
+//   // inverse transpose of the inverse of the world matrix is just the transpose
+//   var lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(object_matrix[0]));
+//   var directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
+//   gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
+//
+//   gl.uniform3fv(materialDiffColorHandle, ballMaterialColor);
+//
+//   gl.uniform3fv(lightColorHandle,  directionalLightColor);
+//   gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
+//
+//   gl.bindVertexArray(b_vao);
+//   gl.drawElements(gl.TRIANGLES, b_indices.length, gl.UNSIGNED_SHORT, 0 );}
+//
+//   {//Table rendering
+//   worldViewMatrix = utils.multiplyMatrices(viewMatrix, object_matrix[1]);
+//   projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
+//   lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(object_matrix[1]));
+//   directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
+//   gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
+//
+//   gl.uniform3fv(materialDiffColorHandle, tableMaterialColor);
+//
+//   gl.uniform3fv(lightColorHandle,  directionalLightColor);
+//   gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
+//
+//   gl.bindVertexArray(t_vao);
+//
+//   gl.drawElements(gl.TRIANGLES, t_indices.length, gl.UNSIGNED_SHORT, 0 );
+// }
+//
+//   {//Palette rendering
+//   for(i = 2; i < 4; i++)
+//   {
+//     worldViewMatrix = utils.multiplyMatrices(viewMatrix, object_matrix[i]);
+//     projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
+//     lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(object_matrix[i]));
+//     directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
+//     gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
+//
+//     gl.uniform3fv(materialDiffColorHandle, paletteMaterialColor);
+//
+//     gl.uniform3fv(lightColorHandle,  directionalLightColor);
+//     gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
+//
+//     gl.bindVertexArray(p_vao);
+//
+//     gl.drawElements(gl.TRIANGLES, p_indices.length, gl.UNSIGNED_SHORT, 0 );
+//   }}
+//
+//   window.requestAnimationFrame(drawScene);
+// }
+// }
+//
+//
+// function animate(){
+//     currentTime = (new Date).getTime();
+//     var deltaR = (350 * (currentTime - lastUpdateTime)) / 1000.0;
+//     if(lastUpdateTime){
+//         if (p1UP){
+//             p1_rot = Math.min(30, p1_rot+deltaR);
+//         } else {
+//             p1_rot = Math.max(-45, p1_rot-deltaR);
+//         }
+//
+//         if (p2UP){
+//             p2_rot = Math.min(30, p2_rot+deltaR);
+//         } else {
+//             p2_rot = Math.max(-45, p2_rot-deltaR);
+//         }
+//
+//     }
+//     object_matrix[2] = utils.multiplyMatrices(utils.MakeWorld(-4.2, 2.0, 16.5, 0.0, 0.0, 0.0, 1.0),
+//     utils.multiplyMatrices(utils.MakeTranslateMatrix(-1.5,0.0,0.0),
+//         utils.multiplyMatrices(utils.MakeRotateYMatrix(-p1_rot), utils.MakeTranslateMatrix(1.5,0.0,0.0))));
+//
+//     object_matrix[3] = utils.multiplyMatrices(utils.MakeWorld(4.2, 2.0, 16.5, 0.0, 0.0, 0.0, 1.0),
+//     utils.multiplyMatrices(utils.MakeTranslateMatrix(1.5,0.0,0.0),
+//         utils.multiplyMatrices(utils.MakeRotateYMatrix(p2_rot), utils.MakeTranslateMatrix(-1.5,0.0,0.0))));
+//
+//
+//
+//     lastUpdateTime = currentTime;
+//   }
 
 {//Palette animation
 var p1UP = false;
 var p2UP = false;
+var max_rot = 45;
 
 function paletteUPMovement(e)
 {
   if (e.keyCode == 81) //q
   {
-    if (!p1UP)
-    {
-      p1_rot -= 45.0;
+    // if (!p1UP)
+    // {
+    //   p1_rot -= 45.0;
+    //   p1UP = true;
+    // }
       p1UP = true;
-    }
+
   }
   if (e.keyCode == 80) //p
   {
-    if (!p2UP)
-    {
-      p2_rot += 45.0;
-      p2UP = true;
-    }
+    // if (!p2UP)
+    // {
+    //   p2_rot += 45.0;
+    //   p2UP = true;
+    // }
+        p2UP = true;
   }
 }
 
@@ -290,21 +445,36 @@ function paletteDOWNMovement(e)
 {
   if (e.keyCode == 81) //q
   {
-    if (p1UP)
-    {
-      p1_rot += 45.0;
+    // if (p1UP)
+    // {
+    //   p1_rot += 45.0;
+    //   p1UP = false;
+    // }
       p1UP = false;
-    }
   }
   if (e.keyCode == 80) //p
   {
-    if (p2UP)
-    {
-      p2_rot -= 45.0;
+    // if (p2UP)
+    // {
+    //   p2_rot -= 45.0;
+    //   p2UP = false;
+    // }
       p2UP = false;
-    }
   }
 }}
+
+class Item {
+    constructor([vertices,normals,indices], color){
+        this.vert = vertices;
+        this.norm = normals;
+        this.ind = indices;
+        this.col = color;
+    }
+
+    set_pos(worldMatrix){
+        this.worldM = worldMatrix;
+    }
+}
 
 {//Functions calling
 window.onload = main;
