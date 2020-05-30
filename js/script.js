@@ -59,7 +59,7 @@ void main() {
 
 function main(){
 
-    {//Light
+    {//Lights
     var dirLightAlpha = -utils.degToRad(120);
     var dirLightBeta  = -utils.degToRad(0);
 
@@ -69,7 +69,7 @@ function main(){
               ];
     directionalLightColor = [0.1, 1.0, 1.0];}
 
-    //Draw 3D objects
+    //objects vertices , normals and indices definition
     [b_vertices, b_normals, b_indices] = draw_ball();
     [t_vertices, t_normals, t_indices] = draw_par(15.0, 0.5, 20.0);
     [p_vertices, p_normals, p_indices] = draw_par(3.0, 0.1, 1.0);
@@ -90,20 +90,20 @@ function main(){
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.DEPTH_TEST);}
 
-    //Shader
+    {//Program settings
     var vertexShader = utils.createShader(gl, gl.VERTEX_SHADER, vs);
     var fragmentShader = utils.createShader(gl, gl.FRAGMENT_SHADER, fs);
     program = utils.createProgram(gl, vertexShader, fragmentShader);
     gl.useProgram(program);
 
-    //Program settings
+
     var positionAttributeLocation = gl.getAttribLocation(program, "inPosition");
     var normalAttributeLocation = gl.getAttribLocation(program, "inNormal");
     matrixLocation = gl.getUniformLocation(program, "matrix");
     materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');
     lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
     lightColorHandle = gl.getUniformLocation(program, 'lightColor');
-    perspectiveMatrix = utils.MakePerspective(90, gl.canvas.width/gl.canvas.height, 0.1, 100.0);
+    perspectiveMatrix = utils.MakePerspective(90, gl.canvas.width/gl.canvas.height, 0.1, 100.0);}
 
     {//Passing ball's params to shader
     b_vao = gl.createVertexArray();
@@ -185,7 +185,8 @@ function main(){
 
 function drawScene()
 {
-  // Sphere definition
+  {//Objects position, rotation, scaling and color definition
+  // Sphere
   object_matrix[0] = utils.MakeWorld( 0.0, 2.0, 18.0, 0.0, 0.0, 0.0, 1.0);
   ballMaterialColor = [0.5, 0.5, 0.5];
 
@@ -199,7 +200,7 @@ function drawScene()
 
   //Palette
   object_matrix[3] = utils.MakeWorld(4.2, 2.0, 18.0, p2_rot, 0.0, 0.0, 1.0);
-  palette2MaterialColor =  [1.0, 0.0, 0.0];
+  palette2MaterialColor =  [1.0, 0.0, 0.0];}
 
   // Camera setting
   var viewMatrix = utils.MakeView(0.0, 10.0, 25.0, -30.0, 0.0);
@@ -261,6 +262,7 @@ function drawScene()
   window.requestAnimationFrame(drawScene);
 }
 
+{//Palette animation
 var p1UP = false;
 var p2UP = false;
 
@@ -302,8 +304,9 @@ function paletteDOWNMovement(e)
       p2UP = false;
     }
   }
-}
+}}
 
+{//Functions calling
 window.onload = main;
 window.addEventListener("keydown", paletteUPMovement, false);
-window.addEventListener("keyup", paletteDOWNMovement, false);
+window.addEventListener("keyup", paletteDOWNMovement, false);}
