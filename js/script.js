@@ -1,3 +1,22 @@
+var  canvas;
+var gl = null;
+var program = null;
+var b_vao, t_vao, p_vao;
+var b_indices, t_indices, p_indices;
+var b_vertices, t_vertices, p_vertices;
+var b_normals, t_normals, p_normals;
+var matrixLocation;
+var object_matrix = new Array();
+
+var perspectiveMatrix, projectionMatrix, viewMatrix;
+
+var directionalLight;
+var lightColorHandle;
+var lightDirectionHandle;
+
+var materialDiffColorHandle;
+var ballMaterialColor, tableMaterialColor, palette1MaterialColor, palette2MaterialColor;
+
 {//Shader
 var vs = `#version 300 es
 
@@ -33,36 +52,42 @@ void main() {
 }
 
 function main(){
-    var program = null;
-    var object_matrix = new Array();
-
     // Sphere definition
-    object_matrix[0] = utils.MakeWorld( 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 1.0);
-    var ballMaterialColor = [0.5, 0.5, 0.5];
+    object_matrix[0] = utils.MakeWorld( 0.0, 2.0, 18.0, 0.0, 0.0, 0.0, 1.0);
+    ballMaterialColor = [0.5, 0.5, 0.5];
 
     // Table
     object_matrix[1] = utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
-    var tableMaterialColor = [0.5, 0.5, 0.5];
+    tableMaterialColor = [0.5, 0.5, 0.5];
+
+    //Palette
+    object_matrix[2] = utils.MakeWorld(-4.2, 2.0, 18.0, -150.0, 0.0, 0.0, 1.0);
+    palette1MaterialColor =  [1.0, 0.0, 0.0];
+
+    //Palette
+    object_matrix[3] = utils.MakeWorld(4.2, 2.0, 18.0, 150.0, 0.0, 0.0, 1.0);
+    palette2MaterialColor =  [1.0, 0.0, 0.0];
 
     {//Light
     var dirLightAlpha = -utils.degToRad(120);
     var dirLightBeta  = -utils.degToRad(0);
 
-    var directionalLight = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
+    directionalLight = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
               Math.sin(dirLightAlpha),
               Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
               ];
-    var directionalLightColor = [0.1, 1.0, 1.0];}
+    directionalLightColor = [0.1, 1.0, 1.0];}
 
     //Draw 3D objects
-    var [b_vertices, b_normals, b_indices] = draw_ball();
-    var [t_vertices, t_normals, t_indices] = draw_par(15.0, 0.5, 20.0);
+    [b_vertices, b_normals, b_indices] = draw_ball();
+    [t_vertices, t_normals, t_indices] = draw_par(15.0, 0.5, 20.0);
+    [p_vertices, p_normals, p_indices] = draw_par(3.0, 0.1, 1.0);
 
     //For animation
     /*var lastUpdateTime = (new Date).getTime();*/
 
     {//Canvas
-    var canvas = document.getElementById("c");
+    canvas = document.getElementById("c");
     gl = canvas.getContext("webgl2");
     if (!gl) {
         document.write("GL context not opened");
@@ -77,20 +102,20 @@ function main(){
     //Shader
     var vertexShader = utils.createShader(gl, gl.VERTEX_SHADER, vs);
     var fragmentShader = utils.createShader(gl, gl.FRAGMENT_SHADER, fs);
-    var program = utils.createProgram(gl, vertexShader, fragmentShader);
+    program = utils.createProgram(gl, vertexShader, fragmentShader);
     gl.useProgram(program);
 
     //Program settings
     var positionAttributeLocation = gl.getAttribLocation(program, "inPosition");
     var normalAttributeLocation = gl.getAttribLocation(program, "inNormal");
-    var matrixLocation = gl.getUniformLocation(program, "matrix");
-    var materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');
-    var lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
-    var lightColorHandle = gl.getUniformLocation(program, 'lightColor');
-    var perspectiveMatrix = utils.MakePerspective(90, gl.canvas.width/gl.canvas.height, 0.1, 100.0);
+    matrixLocation = gl.getUniformLocation(program, "matrix");
+    materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');
+    lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
+    lightColorHandle = gl.getUniformLocation(program, 'lightColor');
+    perspectiveMatrix = utils.MakePerspective(90, gl.canvas.width/gl.canvas.height, 0.1, 100.0);
 
     {//Passing ball's params to shader
-    var b_vao = gl.createVertexArray();
+    b_vao = gl.createVertexArray();
     gl.bindVertexArray(b_vao);
     var b_positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, b_positionBuffer);
@@ -109,7 +134,7 @@ function main(){
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(b_indices), gl.STATIC_DRAW);}
 
     {//Passing table's params to shader
-    var t_vao = gl.createVertexArray();
+    t_vao = gl.createVertexArray();
     gl.bindVertexArray(t_vao);
     var t_positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, t_positionBuffer);
@@ -128,48 +153,28 @@ function main(){
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(t_indices), gl.STATIC_DRAW);
 }
 
-    // Camera setting
-    var viewMatrix = utils.MakeView(0.0, 10.0, 25.0, -30.0, 0.0);
+    {//Passing palette's params to Shader
+    p_vao = gl.createVertexArray();
+    gl.bindVertexArray(p_vao);
+    var p_positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, p_positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(p_vertices), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(positionAttributeLocation);
+    gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
 
-    {//Ball rendering
-    var worldViewMatrix = utils.multiplyMatrices(viewMatrix, object_matrix[0]);
-    var projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
+    var p_normalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, p_normalBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(p_normals), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(normalAttributeLocation);
+    gl.vertexAttribPointer(normalAttributeLocation, 3, gl.FLOAT, false, 0, 0);
 
-    //need to transform light differently for each object
-    // inverse transpose of the inverse of the world matrix is just the transpose
-    var lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(object_matrix[0]));
-    var directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
-    gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
+    var p_indexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, p_indexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(p_indices), gl.STATIC_DRAW);}
 
-    gl.uniform3fv(materialDiffColorHandle, ballMaterialColor);
+    drawScene();
 
-    gl.uniform3fv(lightColorHandle,  directionalLightColor);
-    gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
-
-    gl.bindVertexArray(b_vao);
-    gl.drawElements(gl.TRIANGLES, b_indices.length, gl.UNSIGNED_SHORT, 0 );
-}
-
-    {//Table rendering
-    worldViewMatrix = utils.multiplyMatrices(viewMatrix, object_matrix[1]);
-    projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
-    lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(object_matrix[1]));
-    directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
-    gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
-
-    gl.uniform3fv(materialDiffColorHandle, tableMaterialColor);
-
-    gl.uniform3fv(lightColorHandle,  directionalLightColor);
-    gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
-
-    gl.bindVertexArray(t_vao);
-
-    gl.drawElements(gl.TRIANGLES, t_indices.length, gl.UNSIGNED_SHORT, 0 );
-}
-
-    // drawScene();
-
-  //   function animate(){
+    //function animate(){
   //       var currentTime = (new Date).getTime();
   //       if(lastUpdateTime){
   //           var deltaX = (30 * (currentTime - lastUpdateTime)) / 1000.0;
@@ -185,6 +190,68 @@ function main(){
   //   lastUpdateTime = currentTime;
   // }
 
+}
+
+function drawScene()
+{
+  // Camera setting
+  var viewMatrix = utils.MakeView(0.0, 10.0, 25.0, -30.0, 0.0);
+
+  {//Ball rendering
+  var worldViewMatrix = utils.multiplyMatrices(viewMatrix, object_matrix[0]);
+  var projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
+
+  //need to transform light differently for each object
+  // inverse transpose of the inverse of the world matrix is just the transpose
+  var lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(object_matrix[0]));
+  var directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
+  gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
+
+  gl.uniform3fv(materialDiffColorHandle, ballMaterialColor);
+
+  gl.uniform3fv(lightColorHandle,  directionalLightColor);
+  gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
+
+  gl.bindVertexArray(b_vao);
+  gl.drawElements(gl.TRIANGLES, b_indices.length, gl.UNSIGNED_SHORT, 0 );}
+
+  {//Table rendering
+  worldViewMatrix = utils.multiplyMatrices(viewMatrix, object_matrix[1]);
+  projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
+  lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(object_matrix[1]));
+  directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
+  gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
+
+  gl.uniform3fv(materialDiffColorHandle, tableMaterialColor);
+
+  gl.uniform3fv(lightColorHandle,  directionalLightColor);
+  gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
+
+  gl.bindVertexArray(t_vao);
+
+  gl.drawElements(gl.TRIANGLES, t_indices.length, gl.UNSIGNED_SHORT, 0 );
+}
+
+  {//Palette rendering
+  for(i = 2; i < 4; i++)
+  {
+    worldViewMatrix = utils.multiplyMatrices(viewMatrix, object_matrix[i]);
+    projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
+    lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(object_matrix[i]));
+    directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
+    gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
+
+    gl.uniform3fv(materialDiffColorHandle, tableMaterialColor);
+
+    gl.uniform3fv(lightColorHandle,  directionalLightColor);
+    gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
+
+    gl.bindVertexArray(p_vao);
+
+    gl.drawElements(gl.TRIANGLES, p_indices.length, gl.UNSIGNED_SHORT, 0 );
+  }}
+
+  window.requestAnimationFrame(drawScene);
 }
 
 main();
