@@ -252,17 +252,17 @@ function main(){
     if (lastUpdateTime){
         if (camx !== null) {
             if (camx) {
-                cx += 30 * deltaT / 1000.0;
+                cx += 15 * deltaT / 1000.0;
             } else {
-                cx -= 30 * deltaT / 1000.0
+                cx -= 15 * deltaT / 1000.0
             }
         }
 
         if (camy !== null) {
             if (camy) {
-                cy += 30.0 * deltaT / 1000.0;
+                cy += 10.0 * deltaT / 1000.0;
             } else if (!camy) {
-                cy -= 30.0 * deltaT / 1000.0;
+                cy -= 10.0 * deltaT / 1000.0;
             }
         }
 
