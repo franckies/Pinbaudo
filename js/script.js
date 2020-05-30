@@ -1,21 +1,27 @@
+{//Global variables
 var  canvas;
 var gl = null;
 var program = null;
+
+var object_matrix = new Array();
 var b_vao, t_vao, p_vao;
 var b_indices, t_indices, p_indices;
 var b_vertices, t_vertices, p_vertices;
 var b_normals, t_normals, p_normals;
-var matrixLocation;
-var object_matrix = new Array();
+var ballMaterialColor, tableMaterialColor, palette1MaterialColor, palette2MaterialColor;
 
+var matrixLocation;
 var perspectiveMatrix, projectionMatrix, viewMatrix;
 
 var directionalLight;
 var lightColorHandle;
 var lightDirectionHandle;
-
 var materialDiffColorHandle;
-var ballMaterialColor, tableMaterialColor, palette1MaterialColor, palette2MaterialColor;
+
+//animation variables
+var p1_rot = -150.0;
+var p2_rot = 150.0;
+}
 
 {//Shader
 var vs = `#version 300 es
@@ -52,21 +58,6 @@ void main() {
 }
 
 function main(){
-    // Sphere definition
-    object_matrix[0] = utils.MakeWorld( 0.0, 2.0, 18.0, 0.0, 0.0, 0.0, 1.0);
-    ballMaterialColor = [0.5, 0.5, 0.5];
-
-    // Table
-    object_matrix[1] = utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
-    tableMaterialColor = [0.5, 0.5, 0.5];
-
-    //Palette
-    object_matrix[2] = utils.MakeWorld(-4.2, 2.0, 18.0, -150.0, 0.0, 0.0, 1.0);
-    palette1MaterialColor =  [1.0, 0.0, 0.0];
-
-    //Palette
-    object_matrix[3] = utils.MakeWorld(4.2, 2.0, 18.0, 150.0, 0.0, 0.0, 1.0);
-    palette2MaterialColor =  [1.0, 0.0, 0.0];
 
     {//Light
     var dirLightAlpha = -utils.degToRad(120);
@@ -194,6 +185,22 @@ function main(){
 
 function drawScene()
 {
+  // Sphere definition
+  object_matrix[0] = utils.MakeWorld( 0.0, 2.0, 18.0, 0.0, 0.0, 0.0, 1.0);
+  ballMaterialColor = [0.5, 0.5, 0.5];
+
+  // Table
+  object_matrix[1] = utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+  tableMaterialColor = [0.5, 0.5, 0.5];
+
+  //Palette
+  object_matrix[2] = utils.MakeWorld(-4.2, 2.0, 18.0, p1_rot, 0.0, 0.0, 1.0);
+  palette1MaterialColor =  [1.0, 0.0, 0.0];
+
+  //Palette
+  object_matrix[3] = utils.MakeWorld(4.2, 2.0, 18.0, p2_rot, 0.0, 0.0, 1.0);
+  palette2MaterialColor =  [1.0, 0.0, 0.0];
+
   // Camera setting
   var viewMatrix = utils.MakeView(0.0, 10.0, 25.0, -30.0, 0.0);
 
@@ -254,4 +261,49 @@ function drawScene()
   window.requestAnimationFrame(drawScene);
 }
 
-main();
+var p1UP = false;
+var p2UP = false;
+
+function paletteUPMovement(e)
+{
+  if (e.keyCode == 81) //q
+  {
+    if (!p1UP)
+    {
+      p1_rot -= 45.0;
+      p1UP = true;
+    }
+  }
+  if (e.keyCode == 80) //p
+  {
+    if (!p2UP)
+    {
+      p2_rot += 45.0;
+      p2UP = true;
+    }
+  }
+}
+
+function paletteDOWNMovement(e)
+{
+  if (e.keyCode == 81) //q
+  {
+    if (p1UP)
+    {
+      p1_rot += 45.0;
+      p1UP = false;
+    }
+  }
+  if (e.keyCode == 80) //p
+  {
+    if (p2UP)
+    {
+      p2_rot -= 45.0;
+      p2UP = false;
+    }
+  }
+}
+
+window.onload = main;
+window.addEventListener("keydown", paletteUPMovement, false);
+window.addEventListener("keyup", paletteDOWNMovement, false);
