@@ -25,9 +25,12 @@ var p2_rot = -45.0;
 var z_ball = -20.0;
 var deltaz_ball = 0.0;
 //Camera
-cx = 0.0;
-cy = 10.0;
-cz = 25.0;
+
+var cx = 0.0;
+var cy = 10.0;
+var cz = 25.0;
+var camx = null;
+var camy = null;
 }
 
 {//Shader
@@ -54,13 +57,14 @@ out vec4 outColor;
 uniform vec3 mDiffColor;
 uniform vec3 lightDirection;
 uniform vec3 lightColor;
+uniform float alpha;
 
 void main() {
 
   vec3 nNormal = normalize(fsNormal);
   vec3 lDir = (lightDirection);
   vec3 lambertColor = mDiffColor * lightColor * dot(-lDir,nNormal);
-  outColor = vec4(clamp(lambertColor, 0.0, 1.0), 1.0);
+  outColor = vec4(clamp(lambertColor, 0.0, 1.0), alpha);
 }`;
 }
 
@@ -83,8 +87,8 @@ function main(){
     var paletteR = new Item(draw_par(3.0, 0.3, 1.0), [1.0, 1.0, 1.0]);
     var wallL = new Item(draw_par(1.0 ,1.0 ,20.0), [1.0, 0.65, 0.0]);
     var wallR = new Item(draw_par(1.0 ,1.0 ,20.0), [1.0, 0.65, 0.0]);
-    var wallU = new Item(draw_par(15.0 ,1.0 ,1.0), [1.0, 0.65, 0.0]);
-    var wallD = new Item(draw_par(15.0 ,1.0 ,1.0), [1.0, 0.65, 0.0]);
+    var wallU = new Item(draw_par(13.0 ,1.0, 0.5), [1.0, 0.65, 0.0]);
+    var wallD = new Item(draw_par(13.0 ,1.0 ,0.5), [1.0, 0.65, 0.0]);
   }
 
     //Objects position, rotation, scaling and color definition
@@ -95,8 +99,8 @@ function main(){
     //wall
     wallL.set_pos(utils.MakeWorld(-14.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
     wallR.set_pos(utils.MakeWorld(14.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
-    wallU.set_pos(utils.MakeWorld(0.0, 1.5, -20.0, 0.0, 0.0, 0.0, 1.0));
-    wallD.set_pos(utils.MakeWorld(0.0, 1.5, 20.0, 0.0, 0.0, 0.0, 1.0));
+    wallU.set_pos(utils.MakeWorld(0.0, 1.5, -19.5, 0.0, 0.0, 0.0, 1.0));
+    wallD.set_pos(utils.MakeWorld(0.0, 1.5, 19.5, 0.0, 0.0, 0.0, 1.0));
 
     //For animation
     var deltaT;
@@ -115,6 +119,14 @@ function main(){
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.DEPTH_TEST);}
 
+    // TEST
+    //gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+    //gl.enable(gl.BLEND);
+    //gl.disable(gl.DEPTH_TEST);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    //
+
     {//Program settings
     var vertexShader = utils.createShader(gl, gl.VERTEX_SHADER, vs);
     var fragmentShader = utils.createShader(gl, gl.FRAGMENT_SHADER, fs);
@@ -129,6 +141,7 @@ function main(){
     lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
     lightColorHandle = gl.getUniformLocation(program, 'lightColor');
     perspectiveMatrix = utils.MakePerspective(90, gl.canvas.width/gl.canvas.height, 0.1, 100.0);}
+    alphaLocation = gl.getUniformLocation(program, 'alpha');
 
     {//Passing ball's params to shader
     b_vao = gl.createVertexArray();
@@ -233,6 +246,31 @@ function main(){
     currentTime = (new Date).getTime();
     deltaT = currentTime - lastUpdateTime;
 
+
+    // Camera movement
+
+    if (lastUpdateTime){
+        if (camx !== null) {
+            if (camx) {
+                cx += 30 * deltaT / 1000.0;
+            } else {
+                cx -= 30 * deltaT / 1000.0
+            }
+        }
+
+        if (camy !== null) {
+            if (camy) {
+                cy += 30.0 * deltaT / 1000.0;
+            } else if (!camy) {
+                cy -= 30.0 * deltaT / 1000.0;
+            }
+        }
+
+        camx = null;
+        camy = null;
+    }
+
+
     {//Ball Animation
     //Gravity update
     if(lastUpdateTime){
@@ -281,6 +319,7 @@ function main(){
         gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
 
         gl.uniform3fv(materialDiffColorHandle, ball.col);
+        gl.uniform1f(alphaLocation, 1.0);
 
         gl.uniform3fv(lightColorHandle,  directionalLightColor);
         gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
@@ -296,6 +335,7 @@ function main(){
         gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
 
         gl.uniform3fv(materialDiffColorHandle, table.col);
+        gl.uniform1f(alphaLocation, 1.0);
 
         gl.uniform3fv(lightColorHandle,  directionalLightColor);
         gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
@@ -315,6 +355,7 @@ function main(){
             gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
 
             gl.uniform3fv(materialDiffColorHandle, p.col);
+            gl.uniform1f(alphaLocation, 1.0);
 
             gl.uniform3fv(lightColorHandle,  directionalLightColor);
             gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
@@ -336,6 +377,7 @@ function main(){
             gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
 
             gl.uniform3fv(materialDiffColorHandle, w.col);
+            gl.uniform1f(alphaLocation, 1.0);
 
             gl.uniform3fv(lightColorHandle,  directionalLightColor);
             gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
@@ -356,6 +398,11 @@ function main(){
             gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
 
             gl.uniform3fv(materialDiffColorHandle, w.col);
+            if (i==0){
+                gl.uniform1f(alphaLocation, 1.0);
+            } else {
+                gl.uniform1f(alphaLocation, 0.1);
+            }
 
             gl.uniform3fv(lightColorHandle,  directionalLightColor);
             gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
@@ -403,19 +450,19 @@ function paletteDOWNMovement(e)
 function moveCamera(e){
   if(e.keyCode == 38) //arrow up
   {
-    cy++;
+    camy = true;
   }
   if(e.keyCode == 40) //arrow down
   {
-    cy--;
+    camy = false
   }
   if(e.keyCode == 39) //arrow left
   {
-    cx++;
+    camx = true;
   }
   if(e.keyCode == 37) //arrow right
   {
-    cx--;
+    camx = false;
   }
 }}
 
