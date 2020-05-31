@@ -26,7 +26,11 @@ var materialDiffColorHandle;
 //animation variables
 var p1_rot = -45.0;
 var p2_rot = -45.0;
-var z_ball = -20.0;
+var x_ball = 0.0;
+var y_ball = 1.5;
+var z_ball = 0.0;
+var deltax_ball = 0.0;
+var deltay_ball = 0.0;
 var deltaz_ball = 0.0;
 
 //Camera variables
@@ -199,12 +203,16 @@ function main(){
     {//Ball Animation
     //Gravity update
     if(lastUpdateTime){
-      ball.gravity_update(deltaT);
+      if(!collided){ball.gravity_update(deltaT);}
+      deltax_ball = (ball.vel[0]*deltaT) / 1000.0;
+      deltay_ball = (ball.vel[1]*deltaT) / 1000.0;
       deltaz_ball = (ball.vel[2]*deltaT) / 1000.0;
+      x_ball += deltax_ball;
+      y_ball += deltay_ball;
       z_ball += deltaz_ball;
     }
 
-    ball.set_pos(utils.MakeWorld(0.0, 1.5, z_ball, 0.0, 0.0, 0.0, 1.0));}
+    ball.set_pos(utils.MakeWorld(x_ball, y_ball, z_ball, 0.0, 0.0, 0.0, 1.0));}
 
     {//Palette Animation
     let deltaR = (350 * deltaT) / 1000.0;
@@ -256,8 +264,11 @@ function main(){
           gl.drawElements(gl.TRIANGLES, (objects[i].ind).length, gl.UNSIGNED_SHORT, 0 );
         }}
 
+        utils.collisionDetection(ball, wallD);
+        utils.collisionDetection(ball, wallU);
+        utils.collisionDetection(ball, wallL);
+        utils.collisionDetection(ball, wallR);
 
-        collisionDetection(ball, wallD);
         window.requestAnimationFrame(drawScene);
         }
 }
@@ -325,6 +336,7 @@ class Item {
     set_pos(worldMatrix){
         this.worldM = worldMatrix;
     }
+
     pos(){
       return [this.worldM[3], this.worldM[7], this.worldM[11]];
     }
@@ -339,32 +351,10 @@ class dynBall extends Item{
     this.vel[2] += (9.81 * deltaT) / 1000;
   }
 }
-
+var collided;
 {//Functions calling
 window.onload = main;
 window.addEventListener("keydown", paletteUPMovement, false);
 window.addEventListener("keyup", paletteDOWNMovement, false);
 window.addEventListener("keydown", moveCamera, false);
-}
-
-function collisionDetection(obj1, obj2)
-{
-  var step = 0.1;
-  var width = 13.0;
-  var  depth = 0.25;
-  for(i = 0; i < width/step; i++){
-    var point = [obj2.pos()[0]- width/2 + step*i, obj2.pos()[1], obj2.pos()[2]];
-    var distance = EuclideanDistance(obj1.pos(),point);
-    if (distance < 1.0+depth)
-    {
-      obj1.set_vel([0.0,0.0,0.0]);
-    }
-  }
-}
-
-function EuclideanDistance(point1, point2)
-{
-  return Math.sqrt((point1[0]-point2[0])*(point1[0]-point2[0]) +
-                  (point1[1]-point2[1])*(point1[1]-point2[1]) +
-                  (point1[2]-point2[2])*(point1[2]-point2[2]));
 }
