@@ -3,17 +3,21 @@ var  canvas;
 var gl = null;
 var program = null;
 
+//Arrays needed for objects instantiation
 var object_matrix = new Array();
-var b_vao, t_vao, p_vao, wLR_vao, wUD_vao;
-var b_indices, t_indices, p_indices, wLR_indices, wUD_indices;
-var b_vertices, t_vertices, p_vertices, wLR_vertices, wUD_vertices;
-var b_normals, t_normals, p_normals, wLR_normals, wUD_normals;
+var vao = new Array();
+var positionBuffer = new Array();
+var normalBuffer = new Array();
+var indexBuffer = new Array();
 
+//Time for animation
 var lastUpdateTime, currentTime;
 
+//Matrix for rendering
 var matrixLocation;
 var perspectiveMatrix, projectionMatrix, viewMatrix;
 
+//Light variables
 var directionalLight;
 var lightColorHandle;
 var lightDirectionHandle;
@@ -24,8 +28,8 @@ var p1_rot = -45.0;
 var p2_rot = -45.0;
 var z_ball = -20.0;
 var deltaz_ball = 0.0;
-//Camera
 
+//Camera variables
 var cx = 0.0;
 var cy = 10.0;
 var cz = 25.0;
@@ -81,14 +85,16 @@ function main(){
     directionalLightColor = [0.1, 1.0, 1.0];}
 
     {//Object construction
-    var ball = new dynBall(draw_ball(), [0.2, 0.2, 1.0]);
-    var table = new Item(draw_par(15.0, 0.5, 20.0), [1.0, 0.65, 0.0]);
-    var paletteL = new Item(draw_par(3.0, 0.3, 1.0), [1.0, 1.0, 1.0]);
-    var paletteR = new Item(draw_par(3.0, 0.3, 1.0), [1.0, 1.0, 1.0]);
-    var wallL = new Item(draw_par(1.0 ,1.0 ,20.0), [1.0, 0.65, 0.0]);
-    var wallR = new Item(draw_par(1.0 ,1.0 ,20.0), [1.0, 0.65, 0.0]);
-    var wallU = new Item(draw_par(13.0 ,1.0, 0.5), [1.0, 0.65, 0.0]);
-    var wallD = new Item(draw_par(13.0 ,1.0 ,0.5), [1.0, 0.65, 0.0]);
+    var objects = new Array();
+    var ball = new dynBall("ball", draw_ball(), [0.2, 0.2, 1.0]);
+    var table = new Item("table", draw_par(15.0, 0.5, 20.0), [1.0, 0.65, 0.0]);
+    var paletteL = new Item("paletteL", draw_par(3.0, 0.3, 1.0), [1.0, 1.0, 1.0]);
+    var paletteR = new Item("paletteR", draw_par(3.0, 0.3, 1.0), [1.0, 1.0, 1.0]);
+    var wallL = new Item("wallL", draw_par(1.0 ,1.0 ,20.0), [1.0, 0.65, 0.0]);
+    var wallR = new Item("wallR", draw_par(1.0 ,1.0 ,20.0), [1.0, 0.65, 0.0]);
+    var wallU = new Item("wallU", draw_par(13.0 ,1.0, 0.5), [1.0, 0.65, 0.0]);
+    var wallD = new Item("wallD", draw_par(13.0 ,1.0 ,0.5), [1.0, 0.65, 0.0]);
+    objects.push(ball, table, paletteL, paletteR, wallL, wallR, wallU, wallD);
   }
 
     //Objects position, rotation, scaling and color definition
@@ -117,15 +123,10 @@ function main(){
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(0.85, 0.85, 0.85, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.enable(gl.DEPTH_TEST);}
+    gl.enable(gl.DEPTH_TEST);
 
-    // TEST
-    //gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-    //gl.enable(gl.BLEND);
-    //gl.disable(gl.DEPTH_TEST);
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-    //
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);}
 
     {//Program settings
     var vertexShader = utils.createShader(gl, gl.VERTEX_SHADER, vs);
@@ -140,104 +141,31 @@ function main(){
     materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');
     lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
     lightColorHandle = gl.getUniformLocation(program, 'lightColor');
-    perspectiveMatrix = utils.MakePerspective(90, gl.canvas.width/gl.canvas.height, 0.1, 100.0);}
-    alphaLocation = gl.getUniformLocation(program, 'alpha');
+    perspectiveMatrix = utils.MakePerspective(90, gl.canvas.width/gl.canvas.height, 0.1, 100.0);
+    alphaLocation = gl.getUniformLocation(program, 'alpha');}
 
-    {//Passing ball's params to shader
-    b_vao = gl.createVertexArray();
-    gl.bindVertexArray(b_vao);
-    var b_positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, b_positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ball.vert), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(positionAttributeLocation);
-    gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+    {//Passing objects to shader
+    for(i = 0; i < objects.length; i++)
+    {
+      vao[i] = gl.createVertexArray();
+      gl.bindVertexArray(vao[i]);
+      positionBuffer[i] = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer[i]);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(objects[i].vert), gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(positionAttributeLocation);
+      gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
 
-    var b_normalBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, b_normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ball.norm), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(normalAttributeLocation);
-    gl.vertexAttribPointer(normalAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+      normalBuffer[i] = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer[i]);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(objects[i].norm), gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(normalAttributeLocation);
+      gl.vertexAttribPointer(normalAttributeLocation, 3, gl.FLOAT, false, 0, 0);
 
-    var b_indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, b_indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(ball.ind), gl.STATIC_DRAW);}
-
-    {//Passing table's params to shader
-    t_vao = gl.createVertexArray();
-    gl.bindVertexArray(t_vao);
-    var t_positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, t_positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(table.vert), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(positionAttributeLocation);
-    gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
-
-    var t_normalBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, t_normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(table.norm), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(normalAttributeLocation);
-    gl.vertexAttribPointer(normalAttributeLocation, 3, gl.FLOAT, false, 0, 0);
-
-    var t_indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, t_indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(table.ind), gl.STATIC_DRAW);
-}
-
-    {//Passing palette's params to Shader
-    p_vao = gl.createVertexArray();
-    gl.bindVertexArray(p_vao);
-    var p_positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, p_positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(paletteR.vert), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(positionAttributeLocation);
-    gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
-
-    var p_normalBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, p_normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(paletteR.norm), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(normalAttributeLocation);
-    gl.vertexAttribPointer(normalAttributeLocation, 3, gl.FLOAT, false, 0, 0);
-
-    var p_indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, p_indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(paletteR.ind), gl.STATIC_DRAW);}
-
-    {//Passing walls LEFT-RIGHT params to Shader
-    wLR_vao = gl.createVertexArray();
-    gl.bindVertexArray(wLR_vao);
-    var wLR_positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, wLR_positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(wallL.vert), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(positionAttributeLocation);
-    gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
-
-    var wLR_normalBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, wLR_normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(wallL.norm), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(normalAttributeLocation);
-    gl.vertexAttribPointer(normalAttributeLocation, 3, gl.FLOAT, false, 0, 0);
-
-    var wLR_indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wLR_indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(wallL.ind), gl.STATIC_DRAW);}
-
-    {//Passing walls UP-DOWN params to SHADER
-    wUD_vao = gl.createVertexArray();
-    gl.bindVertexArray(wUD_vao);
-    var wUD_positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, wUD_positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(wallU.vert), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(positionAttributeLocation);
-    gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
-
-    var wUD_normalBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, wUD_normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(wallU.norm), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(normalAttributeLocation);
-    gl.vertexAttribPointer(normalAttributeLocation, 3, gl.FLOAT, false, 0, 0);
-
-    var wUD_indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wUD_indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(wallU.ind), gl.STATIC_DRAW);}
+      indexBuffer[i] = gl.createBuffer();
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer[i]);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(objects[i].ind), gl.STATIC_DRAW);
+      console.log(objects[i]);
+    }}
 
     drawScene();
 
@@ -246,9 +174,7 @@ function main(){
     currentTime = (new Date).getTime();
     deltaT = currentTime - lastUpdateTime;
 
-
-    // Camera movement
-
+    {//Camera movement
     if (lastUpdateTime){
         if (camx !== null) {
             if (camx) {
@@ -268,8 +194,7 @@ function main(){
 
         camx = null;
         camy = null;
-    }
-
+    }}
 
     {//Ball Animation
     //Gravity update
@@ -300,7 +225,6 @@ function main(){
     lastUpdateTime = currentTime;
     }
 
-
     function drawScene() {
         animate();
 
@@ -310,106 +234,26 @@ function main(){
         // Camera setting
         var viewMatrix = utils.MakeView(cx, cy, cz, -40.0, 0.0);
 
-        {//Ball rendering
-        var worldViewMatrix = utils.multiplyMatrices(viewMatrix, ball.worldM);
-        var projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
+        {//Object rendering
+        for(i = 0; i < objects.length; i++)
+        {
+          var worldViewMatrix = utils.multiplyMatrices(viewMatrix, objects[i].worldM);
+          var projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
 
-        var lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(ball.worldM));
-        var directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
-        gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
+          var lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(objects[i].worldM));
+          var directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
+          gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
 
-        gl.uniform3fv(materialDiffColorHandle, ball.col);
-        gl.uniform1f(alphaLocation, 1.0);
+          gl.uniform3fv(materialDiffColorHandle, objects[i].col);
+          gl.uniform1f(alphaLocation, 1.0);
+          //Set transparency for the Down WALL
+          if(objects[i].name == "wallD"){ gl.uniform1f(alphaLocation, 0.1); }
 
-        gl.uniform3fv(lightColorHandle,  directionalLightColor);
-        gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
+          gl.uniform3fv(lightColorHandle,  directionalLightColor);
+          gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
 
-        gl.bindVertexArray(b_vao);
-        gl.drawElements(gl.TRIANGLES, (ball.ind).length, gl.UNSIGNED_SHORT, 0 );}
-
-        {//Table rendering
-        worldViewMatrix = utils.multiplyMatrices(viewMatrix, table.worldM);
-        projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
-        lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(table.worldM));
-        directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
-        gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
-
-        gl.uniform3fv(materialDiffColorHandle, table.col);
-        gl.uniform1f(alphaLocation, 1.0);
-
-        gl.uniform3fv(lightColorHandle,  directionalLightColor);
-        gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
-
-        gl.bindVertexArray(t_vao);
-
-        gl.drawElements(gl.TRIANGLES, (table.ind).length, gl.UNSIGNED_SHORT, 0 );
-        }
-
-        {//Palette rendering
-        for(i = 0; i < 2; i++) {
-            p = (i==0)?paletteL:paletteR;
-            worldViewMatrix = utils.multiplyMatrices(viewMatrix, p.worldM);
-            projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
-            lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(p.worldM));
-            directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
-            gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
-
-            gl.uniform3fv(materialDiffColorHandle, p.col);
-            gl.uniform1f(alphaLocation, 1.0);
-
-            gl.uniform3fv(lightColorHandle,  directionalLightColor);
-            gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
-
-            gl.bindVertexArray(p_vao);
-
-            gl.drawElements(gl.TRIANGLES, (paletteR.ind).length, gl.UNSIGNED_SHORT, 0 );
-        }
-        }
-
-        {//Wall LR rendering
-        for(i = 0; i < 2; i++) {
-            w = (i==0)?wallL:wallR;
-            worldViewMatrix = utils.multiplyMatrices(viewMatrix, w.worldM);
-
-            projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
-            lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(w.worldM));
-            directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
-            gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
-
-            gl.uniform3fv(materialDiffColorHandle, w.col);
-            gl.uniform1f(alphaLocation, 1.0);
-
-            gl.uniform3fv(lightColorHandle,  directionalLightColor);
-            gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
-
-            gl.bindVertexArray(wLR_vao);
-
-            gl.drawElements(gl.TRIANGLES, (w.ind).length, gl.UNSIGNED_SHORT, 0 );
-        }}
-
-        {//Wall UD rendering
-        for(i = 0; i < 2; i++) {
-            w = (i==0)?wallU:wallD;
-            worldViewMatrix = utils.multiplyMatrices(viewMatrix, w.worldM);
-
-            projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
-            lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(w.worldM));
-            directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
-            gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
-
-            gl.uniform3fv(materialDiffColorHandle, w.col);
-            if (i==0){
-                gl.uniform1f(alphaLocation, 1.0);
-            } else {
-                gl.uniform1f(alphaLocation, 0.1);
-            }
-
-            gl.uniform3fv(lightColorHandle,  directionalLightColor);
-            gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
-
-            gl.bindVertexArray(wUD_vao);
-
-            gl.drawElements(gl.TRIANGLES, (w.ind).length, gl.UNSIGNED_SHORT, 0 );
+          gl.bindVertexArray(vao[i]);
+          gl.drawElements(gl.TRIANGLES, (objects[i].ind).length, gl.UNSIGNED_SHORT, 0 );
         }}
 
         window.requestAnimationFrame(drawScene);
@@ -468,7 +312,8 @@ function moveCamera(e){
 
 //Objects class
 class Item {
-    constructor([vertices,normals,indices], color){
+    constructor(name, [vertices,normals,indices], color){
+        this.name = name;
         this.vert = vertices;
         this.norm = normals;
         this.ind = indices;
@@ -489,7 +334,6 @@ class dynBall extends Item{
     this.vel[2] += (9.81 * deltaT) / 1000;
   }
 }
-
 
 {//Functions calling
 window.onload = main;
