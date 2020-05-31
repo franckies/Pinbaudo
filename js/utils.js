@@ -306,13 +306,13 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 
 		return out;
 	},
-	
+
 //Transpose the values of a mat3
 
 	transposeMatrix3 : function(a) {
 
 		out = [];
-		
+
 		out[0] = a[0];
 		out[1] = a[3];
 		out[2] = a[6];
@@ -322,14 +322,14 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 		out[6] = a[2];
 		out[7] = a[5];
 		out[8] = a[8];
-	 
-		
+
+
 		return out;
 	},
-	
+
 	invertMatrix3: function(m){
 		out = [];
-		
+
 		var a00 = m[0], a01 = m[1], a02 = m[2],
 			a10 = m[3], a11 = m[4], a12 = m[5],
 			a20 = m[6], a21 = m[7], a22 = m[8],
@@ -341,8 +341,8 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 			// Calculate the determinant
 			det = a00 * b01 + a01 * b11 + a02 * b21;
 
-		if (!det) { 
-			return null; 
+		if (!det) {
+			return null;
 		}
 		det = 1.0 / det;
 
@@ -354,64 +354,64 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 		out[5] = (-a12 * a00 + a02 * a10) * det;
 		out[6] = b21 * det;
 		out[7] = (-a21 * a00 + a01 * a20) * det;
-		out[8] = (a11 * a00 - a01 * a10) * det;		
-		
+		out[8] = (a11 * a00 - a01 * a10) * det;
+
 		return out;
 	},
-	
+
 	//requires as a parameter a 4x4 matrix (array of 16 values)
-	invertMatrix: function(m){ 
-       
+	invertMatrix: function(m){
+
 		var out = [];
 		var inv = [];
 		var det, i;
 
-		inv[0] = m[5]  * m[10] * m[15] - m[5]  * m[11] * m[14] - m[9]  * m[6]  * m[15] + 
+		inv[0] = m[5]  * m[10] * m[15] - m[5]  * m[11] * m[14] - m[9]  * m[6]  * m[15] +
 				 m[9]  * m[7]  * m[14] + m[13] * m[6]  * m[11] - m[13] * m[7]  * m[10];
 
-		inv[4] = -m[4]  * m[10] * m[15] + m[4]  * m[11] * m[14] + m[8]  * m[6]  * m[15] - 
+		inv[4] = -m[4]  * m[10] * m[15] + m[4]  * m[11] * m[14] + m[8]  * m[6]  * m[15] -
 				  m[8]  * m[7]  * m[14] - m[12] * m[6]  * m[11] + m[12] * m[7]  * m[10];
 
-		inv[8] = m[4]  * m[9] * m[15] - m[4]  * m[11] * m[13] - m[8]  * m[5] * m[15] + 
+		inv[8] = m[4]  * m[9] * m[15] - m[4]  * m[11] * m[13] - m[8]  * m[5] * m[15] +
 				 m[8]  * m[7] * m[13] + m[12] * m[5] * m[11] - m[12] * m[7] * m[9];
 
-		inv[12] = -m[4]  * m[9] * m[14] + m[4]  * m[10] * m[13] + m[8]  * m[5] * m[14] - 
+		inv[12] = -m[4]  * m[9] * m[14] + m[4]  * m[10] * m[13] + m[8]  * m[5] * m[14] -
 				   m[8]  * m[6] * m[13] - m[12] * m[5] * m[10] + m[12] * m[6] * m[9];
 
-		inv[1] = -m[1]  * m[10] * m[15] + m[1]  * m[11] * m[14] + m[9]  * m[2] * m[15] - 
+		inv[1] = -m[1]  * m[10] * m[15] + m[1]  * m[11] * m[14] + m[9]  * m[2] * m[15] -
 				  m[9]  * m[3] * m[14] - m[13] * m[2] * m[11] +  m[13] * m[3] * m[10];
 
-		inv[5] = m[0]  * m[10] * m[15] - m[0]  * m[11] * m[14] - m[8]  * m[2] * m[15] + 
+		inv[5] = m[0]  * m[10] * m[15] - m[0]  * m[11] * m[14] - m[8]  * m[2] * m[15] +
 				 m[8]  * m[3] * m[14] + m[12] * m[2] * m[11] - m[12] * m[3] * m[10];
 
-		inv[9] = -m[0]  * m[9] * m[15] + m[0]  * m[11] * m[13] + m[8]  * m[1] * m[15] - 
+		inv[9] = -m[0]  * m[9] * m[15] + m[0]  * m[11] * m[13] + m[8]  * m[1] * m[15] -
 				  m[8]  * m[3] * m[13] - m[12] * m[1] * m[11] + m[12] * m[3] * m[9];
 
-		inv[13] = m[0]  * m[9] * m[14] - m[0]  * m[10] * m[13] - m[8]  * m[1] * m[14] + 
+		inv[13] = m[0]  * m[9] * m[14] - m[0]  * m[10] * m[13] - m[8]  * m[1] * m[14] +
 				  m[8]  * m[2] * m[13] + m[12] * m[1] * m[10] - m[12] * m[2] * m[9];
 
-		inv[2] = m[1]  * m[6] * m[15] - m[1]  * m[7] * m[14] - m[5]  * m[2] * m[15] + 
+		inv[2] = m[1]  * m[6] * m[15] - m[1]  * m[7] * m[14] - m[5]  * m[2] * m[15] +
 				 m[5]  * m[3] * m[14] + m[13] * m[2] * m[7] - m[13] * m[3] * m[6];
 
-		inv[6] = -m[0]  * m[6] * m[15] + m[0]  * m[7] * m[14] + m[4]  * m[2] * m[15] - 
+		inv[6] = -m[0]  * m[6] * m[15] + m[0]  * m[7] * m[14] + m[4]  * m[2] * m[15] -
 				  m[4]  * m[3] * m[14] - m[12] * m[2] * m[7] +  m[12] * m[3] * m[6];
 
-		inv[10] = m[0]  * m[5] * m[15] - m[0]  * m[7] * m[13] - m[4]  * m[1] * m[15] + 
+		inv[10] = m[0]  * m[5] * m[15] - m[0]  * m[7] * m[13] - m[4]  * m[1] * m[15] +
 				  m[4]  * m[3] * m[13] + m[12] * m[1] * m[7] - m[12] * m[3] * m[5];
 
-		inv[14] = -m[0]  * m[5] * m[14] + m[0]  * m[6] * m[13] + m[4]  * m[1] * m[14] - 
+		inv[14] = -m[0]  * m[5] * m[14] + m[0]  * m[6] * m[13] + m[4]  * m[1] * m[14] -
 				   m[4]  * m[2] * m[13] - m[12] * m[1] * m[6] + m[12] * m[2] * m[5];
 
-		inv[3] = -m[1] * m[6] * m[11] + m[1] * m[7] * m[10] + m[5] * m[2] * m[11] - 
+		inv[3] = -m[1] * m[6] * m[11] + m[1] * m[7] * m[10] + m[5] * m[2] * m[11] -
 				  m[5] * m[3] * m[10] - m[9] * m[2] * m[7] + m[9] * m[3] * m[6];
 
-		inv[7] = m[0] * m[6] * m[11] - m[0] * m[7] * m[10] - m[4] * m[2] * m[11] + 
+		inv[7] = m[0] * m[6] * m[11] - m[0] * m[7] * m[10] - m[4] * m[2] * m[11] +
 				 m[4] * m[3] * m[10] + m[8] * m[2] * m[7] - m[8] * m[3] * m[6];
 
-		inv[11] = -m[0] * m[5] * m[11] + m[0] * m[7] * m[9] + m[4] * m[1] * m[11] - 
+		inv[11] = -m[0] * m[5] * m[11] + m[0] * m[7] * m[9] + m[4] * m[1] * m[11] -
 				   m[4] * m[3] * m[9] - m[8] * m[1] * m[7] + m[8] * m[3] * m[5];
 
-		inv[15] = m[0] * m[5] * m[10] - m[0] * m[6] * m[9] - m[4] * m[1] * m[10] + 
+		inv[15] = m[0] * m[5] * m[10] - m[0] * m[6] * m[9] - m[4] * m[1] * m[10] +
 				  m[4] * m[2] * m[9] + m[8] * m[1] * m[6] - m[8] * m[2] * m[5];
 
 		det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
@@ -424,31 +424,31 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 		for (i = 0; i < 16; i++){
 			out[i] = inv[i] * det;
 		}
-		
+
 		return out;
 	},
-	
+
 	transposeMatrix: function(m){
-		var out = []; 
-		
+		var out = [];
+
 		var row, column, row_offset;
-		
+
 		row_offset=0;
 		for (row = 0; row < 4; ++row) {
 			row_offset = row * 4;
 			for (column = 0; column < 4; ++column){
 				out[row_offset + column] = m[row + column * 4];
-			  }    
+			  }
 		}
-		return out;        
+		return out;
 	},
-	
+
 	multiplyMatrices: function(m1, m2){
 	// Perform matrix product  { out = m1 * m2;}
-		var out = [];  
-		
+		var out = [];
+
 		var row, column, row_offset;
-		
+
 		row_offset=0;
 		for (row = 0; row < 4; ++row) {
 			row_offset = row * 4;
@@ -458,18 +458,18 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 					(m1[row_offset + 1] * m2[column + 4]) +
 					(m1[row_offset + 2] * m2[column + 8]) +
 					(m1[row_offset + 3] * m2[column + 12]);
-			  }    
+			  }
 		}
-		return out; 
-	},	
+		return out;
+	},
 
 	multiplyMatrixVector: function(m, v){
        /* Mutiplies a matrix [m] by a vector [v] */
-       
-		var out = [];  
-		
+
+		var out = [];
+
 		var row, row_offset;
-		
+
 		row_offset=0;
 		for (row = 0; row < 4; ++row) {
 			row_offset = row * 4;
@@ -479,18 +479,18 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 				(m[row_offset + 1] * v[1]) +
 				(m[row_offset + 2] * v[2]) +
 				(m[row_offset + 3] * v[3]);
-				 
+
 		}
-		return out;        
+		return out;
 	},
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
 //*** MODEL MATRIX OPERATIONS
 
 
@@ -502,10 +502,10 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 		out[3]  = dx;
 		out[7]  = dy;
 		out[11] = dz;
-		return out; 
+		return out;
 	},
 
-	
+
 	MakeRotateXMatrix: function(a) {
 	// Create a transform matrix for a rotation of {a} along the X axis.
 
@@ -519,7 +519,7 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 		out[6] = -s;
 		out[9] = s;
 
-		return out; 
+		return out;
 	},
 
 	MakeRotateYMatrix: function(a) {
@@ -528,7 +528,7 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 		var out = this.identityMatrix();
 
 		var adeg = this.degToRad(a);
-		
+
 		var c = Math.cos(adeg);
 		var s = Math.sin(adeg);
 
@@ -536,10 +536,10 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 		out[2] = -s;
 		out[8] = s;
 
-		return out; 
+		return out;
 	},
 
-	MakeRotateZMatrix: function(a) {                                            
+	MakeRotateZMatrix: function(a) {
 	// Create a transform matrix for a rotation of {a} along the Z axis.
 
 		var out = this.identityMatrix();
@@ -552,17 +552,17 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 		out[4] = -s;
 		out[1] = s;
 
-		return out; 
+		return out;
 	},
 
 	MakeScaleMatrix: function(s) {
 	// Create a transform matrix for proportional scale
 
-		var out = this.identityMatrix();                                               
+		var out = this.identityMatrix();
 
 		out[0] = out[5] = out[10] = s;
 
-		return out; 
+		return out;
 	},
 
 
@@ -572,13 +572,13 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 
 		var Rx = this.MakeRotateXMatrix(rx);
 		var Ry = this.MakeRotateYMatrix(ry);
-		var Rz = this.MakeRotateZMatrix(rz);  
+		var Rz = this.MakeRotateZMatrix(rz);
 		var S  = this.MakeScaleMatrix(s);
-		var T =  this.MakeTranslateMatrix(tx, ty, tz);         
-		   
+		var T =  this.MakeTranslateMatrix(tx, ty, tz);
+
 		out = this.multiplyMatrices(Rz, S);
 		out = this.multiplyMatrices(Ry, out);
-		out = this.multiplyMatrices(Rx, out);  
+		out = this.multiplyMatrices(Rx, out);
 		out = this.multiplyMatrices(T, out);
 
 		return out;
@@ -587,7 +587,7 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 	MakeView: function(cx, cy, cz, elev, ang) {
 	// Creates in {out} a view matrix. The camera is centerd in ({cx}, {cy}, {cz}).
 	// It looks {ang} degrees on y axis, and {elev} degrees on the x axis.
-		
+
 		var T = [];
 		var Rx = [];
 		var Ry = [];
@@ -619,7 +619,7 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 		perspective[10] = (f + n) / (n - f);
 		perspective[11] = 2.0 * f * n / (n - f);
 		perspective[14] = -1.0;
-		perspective[15] = 0.0;	
+		perspective[15] = 0.0;
 
 		return perspective;
 	}
