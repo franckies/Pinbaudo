@@ -97,9 +97,8 @@ function main(){
     objects.push(ball, table, paletteL, paletteR, wallL, wallR, wallU, wallD);
   }
 
-    //Objects INITIAL position, rotation, scaling
+    //Objects position, rotation, scaling and color definition
     // Sphere
-    ball.set_pos(utils.MakeWorld(0.0, 1.5, z_ball, 0.0, 0.0, 0.0, 1.0));
     ball.set_vel([0.0, 0.0, 0.0]);
     // Table
     table.set_pos(utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0));
@@ -167,27 +166,6 @@ function main(){
       gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(objects[i].ind), gl.STATIC_DRAW);
       console.log(objects[i]);
     }}
-
-    //TEST
-    // var collidableMeshList = [];
-    //
-    // for(i = 1 ; i < objects.length; i++){
-    //   collidableMeshList.push([objects[i].vert, objects[i].ind, objects[i].col]);
-    // }
-    //
-    // //Collision detection TEST
-    // var originPoint = ball.get_pos();
-    //
-    // for (i = 0; i < ball.vert.length-3; i= i+3)
-    // {
-    //   var localVertex = [ball.vert[i], ball.vert[i+1], ball.vert[i+2], 1.0];
-    //   var globalVertex = utils.multiplyMatrixVector(ball.worldM, localVertex); //localVertex.applyMatrix4( ball.worldM );
-    //   var directionVector = [globalVertex[0] - ball.get_pos()[0], globalVertex[1] - ball.get_pos()[1], globalVertex[2] - ball.get_pos()[2]]; //globalVertex.sub( [ball.worldM[0,3], ball.worldM[1,3], ball.worldM[2,3] ] );
-    //   //Now originPoint is the origin of the ray, directionVector.normalize() is the direction of the ray
-    //   //TO DO: intersect ray with wall meshes.
-    //
-    // }
-    //
 
     drawScene();
 
@@ -268,7 +246,6 @@ function main(){
 
           gl.uniform3fv(materialDiffColorHandle, objects[i].col);
           gl.uniform1f(alphaLocation, 1.0);
-
           //Set transparency for the Down WALL
           if(objects[i].name == "wallD"){ gl.uniform1f(alphaLocation, 0.1); }
 
@@ -279,23 +256,8 @@ function main(){
           gl.drawElements(gl.TRIANGLES, (objects[i].ind).length, gl.UNSIGNED_SHORT, 0 );
         }}
 
-        // for(i = 2; i< objects.length; i++){
-        //   for(j = 0; j < objects[i].vert.length-3; j = j+3){
-        //     //console.log(i);
-        //     //console.log(j);
-        //     point = [objects[i].vert[j], objects[i].vert[j+1], objects[i].vert[j+2]];
-        //     //console.log(point);
-        //     var distance = Math.sqrt((point[0] - ball.get_pos()[0]) * (point[0] - ball.get_pos()[0]) +
-        //                              (point[1] - ball.get_pos()[1]) * (point[1] - ball.get_pos()[1]) +
-        //                              (point[2] - ball.get_pos()[2]) * (point[2] - ball.get_pos()[2]));
-        //     //console.log(distance);
-        //     if(distance < 1){
-        //       window.alert("cia");
-        //     }
-        //   }
-        // }
 
-
+        collisionDetection(ball, wallD);
         window.requestAnimationFrame(drawScene);
         }
 }
@@ -363,7 +325,7 @@ class Item {
     set_pos(worldMatrix){
         this.worldM = worldMatrix;
     }
-    get_pos(){
+    pos(){
       return [this.worldM[3], this.worldM[7], this.worldM[11]];
     }
 }
@@ -377,13 +339,32 @@ class dynBall extends Item{
     this.vel[2] += (9.81 * deltaT) / 1000;
   }
 }
-var collisionPoints = []
-for (i = 0; i<1000; i++){
-  point = []
-  collisionPoints.push([])
-}
+
 {//Functions calling
-  window.onload = main;
-  window.addEventListener("keydown", paletteUPMovement, false);
-  window.addEventListener("keyup", paletteDOWNMovement, false);
-  window.addEventListener("keydown", moveCamera, false);}
+window.onload = main;
+window.addEventListener("keydown", paletteUPMovement, false);
+window.addEventListener("keyup", paletteDOWNMovement, false);
+window.addEventListener("keydown", moveCamera, false);
+}
+
+function collisionDetection(obj1, obj2)
+{
+  var step = 0.1;
+  var width = 13.0;
+  var  depth = 0.25;
+  for(i = 0; i < width/step; i++){
+    var point = [obj2.pos()[0]- width/2 + step*i, obj2.pos()[1], obj2.pos()[2]];
+    var distance = EuclideanDistance(obj1.pos(),point);
+    if (distance < 1.0+depth)
+    {
+      obj1.set_vel([0.0,0.0,0.0]);
+    }
+  }
+}
+
+function EuclideanDistance(point1, point2)
+{
+  return Math.sqrt((point1[0]-point2[0])*(point1[0]-point2[0]) +
+                  (point1[1]-point2[1])*(point1[1]-point2[1]) +
+                  (point1[2]-point2[2])*(point1[2]-point2[2]));
+}
