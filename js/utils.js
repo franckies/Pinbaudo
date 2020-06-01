@@ -629,18 +629,19 @@ createProgram:function(gl, vertexShader, fragmentShader) {
   {
     if(obj2.name == "wallD" || obj2.name == "wallU"){var width = 26.0; var depth = 0.25;};
     if(obj2.name == "wallL" || obj2.name == "wallR"){var width = 40.0; var depth = 1.0;};
-    if(obj2.name == "paletteL" || obj2.name == "paletteR"){var width = 6.0; var depth = 1.0; var height = 1.0;};
-    var step = 0.1;
+    if(obj2.name == "paletteL" || obj2.name == "paletteR"){var width = 3.0; var depth = 1.0; var height = 1.0;};
+    var step = 0.01;
     for(i = 0; i < width/step; i++){
 
       if(obj2.name == "wallD" || obj2.name == "wallU"){
         var point = [obj2.pos()[0]- width/2 + step*i, obj2.pos()[1], obj2.pos()[2]];}
       if(obj2.name == "wallL" || obj2.name == "wallR"){
         var point = [obj2.pos()[0], obj2.pos()[1], obj2.pos()[2]- width/2 + step*i];}
-      if(obj2.name == "paletteL" || obj2.name == "paletteR"){
-        //TO DO
-        }
+      if(obj2.name == "paletteL"){// || obj2.name == "paletteR"){//TO DO
+        var point = [(obj2.pos()[0] - width/2 + step*i) , obj2.pos()[1], (obj2.pos()[2] - width/2 + step*i)];}
+
       var distance = utils.EuclideanDistance(obj1.pos(),point);
+
       if (distance < 1.0+depth)
       {
         obj1.set_vel([-obj1.vel[0],-obj1.vel[1],-obj1.vel[2]]);
