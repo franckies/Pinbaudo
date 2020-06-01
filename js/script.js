@@ -1,5 +1,5 @@
 {//Global variables
-var  canvas;
+var canvas;
 var gl = null;
 var program = null;
 
@@ -48,10 +48,12 @@ in vec3 inPosition;
 in vec3 inNormal;
 out vec3 fsNormal;
 
+uniform mat4 nMatrix;
 uniform mat4 matrix;
 
 void main() {
-  fsNormal =  inNormal;
+  fsNormal = mat3(nMatrix) * inNormal; 
+  //fsNormal = inNormal;
   gl_Position = matrix * vec4(inPosition, 1.0);
 }`;
 
@@ -70,8 +72,7 @@ uniform float alpha;
 void main() {
 
   vec3 nNormal = normalize(fsNormal);
-  vec3 lDir = (lightDirection);
-  vec3 lambertColor = mDiffColor * lightColor * dot(-lDir,nNormal);
+  vec3 lambertColor = mDiffColor * lightColor * dot(-lightDirection,nNormal);
   outColor = vec4(clamp(lambertColor, 0.0, 1.0), alpha);
 }`;
 }
@@ -93,7 +94,7 @@ function main(){
     var ball = new dynBall("ball", draw_ball(), [0.2, 0.2, 1.0]);
     var table = new Item("table", draw_par(15.0, 0.5, 20.0), [1.0, 0.65, 0.0]);
     var paletteL = new Item("paletteL", draw_par(3.0, 0.3, 1.0), [1.0, 1.0, 1.0]);
-    var paletteR = new Item("paletteR", draw_par(3.0, 0.3, 1.0), [1.0, 1.0, 1.0]);
+    var paletteR = new Item("paletteR", draw_par(3.0, 1.4, 1.0), [1.0, 1.0, 1.0]);
     var wallL = new Item("wallL", draw_par(1.0 ,1.0 ,20.0), [1.0, 0.65, 0.0]);
     var wallR = new Item("wallR", draw_par(1.0 ,1.0 ,20.0), [1.0, 0.65, 0.0]);
     var wallU = new Item("wallU", draw_par(13.0 ,1.0, 0.5), [1.0, 0.65, 0.0]);
@@ -150,6 +151,7 @@ function main(){
     lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
     lightColorHandle = gl.getUniformLocation(program, 'lightColor');
     perspectiveMatrix = utils.MakePerspective(90, gl.canvas.width/gl.canvas.height, 0.1, 100.0);
+    var normalMatrixPositionHandle = gl.getUniformLocation(program, 'nMatrix');
     alphaLocation = gl.getUniformLocation(program, 'alpha');}
 
     {//Passing objects to shader
@@ -172,7 +174,7 @@ function main(){
       indexBuffer[i] = gl.createBuffer();
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer[i]);
       gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(objects[i].ind), gl.STATIC_DRAW);
-      console.log(objects[i]);
+      // console.log(objects[i]);
     }}
 
     drawScene();
@@ -184,12 +186,10 @@ function main(){
     deltaT = currentTime - lastUpdateTime;
     //Collisions
     if(lastUpdateTime){
-      utils.collisionDetection(ball, wallD);
-      utils.collisionDetection(ball, wallU);
-      utils.collisionDetection(ball, wallL);
-      utils.collisionDetection(ball, wallR);
-      if(!collided || nFrame % 5 == 0){utils.collisionDetection(ball, paletteL);}
+      utils.collisionDetection(ball,paletteL);
     }
+
+    // utils.collisionDetection(ball, wallL);
     {//Camera movement
     if (lastUpdateTime){
         if (camx !== null) {
@@ -215,15 +215,17 @@ function main(){
     {//Ball Animation
     //Gravity update
     if(lastUpdateTime){
-      if(!collided){ball.gravity_update(deltaT);}
+      if(coll){
+          ball.gravity_update(deltaT);
+      }
       deltax_ball = (ball.vel[0]*deltaT) / 1000.0;
       deltay_ball = (ball.vel[1]*deltaT) / 1000.0;
       deltaz_ball = (ball.vel[2]*deltaT) / 1000.0;
-      x_ball += deltax_ball;
-      y_ball += deltay_ball;
-      z_ball += deltaz_ball;
+      // ball.set_pos(ball.pos()[0]);
+      // ball.pos()[1] += deltay_ball;
+      // ball.pos()[2] += deltaz_ball;
     }
-    ball.set_pos(utils.MakeWorld(x_ball, y_ball, z_ball, 0.0, 0.0, 0.0, 1.0));}
+    ball.set_pos(utils.MakeWorld(ball.pos()[0]+deltax_ball, ball.pos()[1]+deltay_ball, ball.pos()[2]+deltaz_ball, 0.0, 0.0, 0.0, 1.0));}
 
     {//Palette Animation
     let deltaR = (350 * deltaT) / 1000.0;
@@ -259,17 +261,20 @@ function main(){
           var worldViewMatrix = utils.multiplyMatrices(viewMatrix, objects[i].worldM);
           var projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
 
-          var lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(objects[i].worldM));
-          var directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
-          gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
+          // var lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(objects[i].worldM));
+          // var directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
 
+          gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
+          var normalMatrix = utils.transposeMatrix(utils.invertMatrix(utils.transposeMatrix(objects[i].worldM)));
+
+          gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(normalMatrix));
           gl.uniform3fv(materialDiffColorHandle, objects[i].col);
           gl.uniform1f(alphaLocation, 1.0);
           //Set transparency for the Down WALL
           if(objects[i].name == "wallD"){ gl.uniform1f(alphaLocation, 0.1); }
 
           gl.uniform3fv(lightColorHandle,  directionalLightColor);
-          gl.uniform3fv(lightDirectionHandle,  directionalLightTransformed);
+          gl.uniform3fv(lightDirectionHandle,  directionalLight);
 
           gl.bindVertexArray(vao[i]);
           gl.drawElements(gl.TRIANGLES, (objects[i].ind).length, gl.UNSIGNED_SHORT, 0 );
@@ -354,10 +359,10 @@ class dynBall extends Item{
   }
 
   gravity_update(deltaT){
-    this.vel[2] += (9.81 * deltaT) / 1000;
+    this.vel[2] += (3 * deltaT) / 1000;
   }
 }
-var collided;
+var coll = true;
 var nFrame = 0;
 {//Functions calling
 window.onload = main;

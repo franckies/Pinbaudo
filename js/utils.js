@@ -307,6 +307,12 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 		return out;
 	},
 
+	crossproduct: function(a,b) {
+		return([a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0]]);
+	},
+
+
+
 //Transpose the values of a mat3
 
 	transposeMatrix3 : function(a) {
@@ -625,40 +631,152 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 	},
 
   //Function implementing collision detection
-  collisionDetection:function(obj1, obj2)
-  {
-    if(obj2.name == "wallD" || obj2.name == "wallU"){var width = 26.0; var depth = 0.25;};
-    if(obj2.name == "wallL" || obj2.name == "wallR"){var width = 40.0; var depth = 1.0;};
-    if(obj2.name == "paletteL" || obj2.name == "paletteR"){var width = 3.0; var depth = 1.0; var height = 1.0;};
-    var step = 0.01;
-    for(i = 0; i < width/step; i++){
+  // collisionDetection:function(obj1, obj2)
+  // {
+  //   if(obj2.name == "wallD" || obj2.name == "wallU"){var width = 26.0; var depth = 0.25;};
+  //   if(obj2.name == "wallL" || obj2.name == "wallR"){var width = 40.0; var depth = 1.0;};
+  //   if(obj2.name == "paletteL" || obj2.name == "paletteR"){var width = 3.0; var depth = 1.0; var height = 1.0;};
+  //   var step = 0.01;
+  //   for(i = 0; i < width/step; i++){
+  //
+  //     if(obj2.name == "wallD" || obj2.name == "wallU"){
+  //       var point = [obj2.pos()[0]- width/2 + step*i, obj2.pos()[1], obj2.pos()[2]];}
+  //     if(obj2.name == "wallL" || obj2.name == "wallR"){
+  //       var point = [obj2.pos()[0], obj2.pos()[1], obj2.pos()[2]- width/2 + step*i];}
+  //     if(obj2.name == "paletteL"){// || obj2.name == "paletteR"){//TO DO
+  //       var point = [(obj2.pos()[0] - width/2 + step*i) , obj2.pos()[1], (obj2.pos()[2] - width/2 + step*i)];}
+  //
+  //     var distance = utils.EuclideanDistance(obj1.pos(),point);
+  //
+  //     if (distance < 1.0+depth)
+  //     {
+  //       obj1.set_vel([-obj1.vel[0],-obj1.vel[1],-obj1.vel[2]]);
+  //       collided = true;
+  //     }
+  //     else{
+  //       collided = false;
+  //     }
+  //   }
+  // }
 
-      if(obj2.name == "wallD" || obj2.name == "wallU"){
-        var point = [obj2.pos()[0]- width/2 + step*i, obj2.pos()[1], obj2.pos()[2]];}
-      if(obj2.name == "wallL" || obj2.name == "wallR"){
-        var point = [obj2.pos()[0], obj2.pos()[1], obj2.pos()[2]- width/2 + step*i];}
-      if(obj2.name == "paletteL"){// || obj2.name == "paletteR"){//TO DO
-        var point = [(obj2.pos()[0] - width/2 + step*i) , obj2.pos()[1], (obj2.pos()[2] - width/2 + step*i)];}
+	collisionDetection:function(ball, obj){
+		let c_ball = ball.pos();
+		let v_ball = ball.vert;
 
-      var distance = utils.EuclideanDistance(obj1.pos(),point);
 
-      if (distance < 1.0+depth)
-      {
-        obj1.set_vel([-obj1.vel[0],-obj1.vel[1],-obj1.vel[2]]);
-        collided = true;
-      }
-      else{
-        collided = false;
-      }
-    }
-  },
+		var vert_list = []; // ball vertices
+		for (i=0; i<(v_ball.length-2); i=i+3){
+			var world_v = this.multiplyMatrixVector(ball.worldM, [v_ball[i], v_ball[i+1], v_ball[i+2], 1.0]);
+			vert_list.push([world_v[0]/world_v[3], world_v[1]/world_v[3], world_v[2]/world_v[3]]);
+		}
+		let ball_radius = this.EuclideanDistance(c_ball, vert_list[0]);
+		var nMatrix = utils.sub3x3from4x4(utils.transposeMatrix(utils.invertMatrix(utils.transposeMatrix(obj.worldM))));
+
+		for(i=0; i<vert_list.length; i++){
+			// if (!coll){
+			// 	break;
+			// }
+			let cur_v = vert_list[i];
+			let line_par = [c_ball[0], (cur_v[0] - c_ball[0]), c_ball[1], (cur_v[1] - c_ball[1]), c_ball[2], (cur_v[2] - c_ball[2])];
+			for (j=0; j<obj.ind.length-2; j=j+3){
+				var n = this.normalizeVec3(this.multiplyMatrix3Vector3(nMatrix, [obj.norm[obj.ind[j]*3], obj.norm[obj.ind[j]*3 + 1], obj.norm[obj.ind[j]*3 + 2]]));
+				// if (i==0){
+				// 	console.log(obj.norm);
+				// 	console.log(n);
+				// }
+				var p = [];
+				p[0] = this.multiplyMatrixVector(obj.worldM, [obj.vert[obj.ind[j]*3], obj.vert[obj.ind[j]*3+1], [obj.vert[obj.ind[j]*3 + 2]],1]).slice(0,3);
+				p[1] = this.multiplyMatrixVector(obj.worldM, [obj.vert[obj.ind[j+1]*3], obj.vert[obj.ind[j+1]*3+1], [obj.vert[obj.ind[j+1]*3 + 2]],1]).slice(0,3);
+				p[2] = this.multiplyMatrixVector(obj.worldM, [obj.vert[obj.ind[j+2]*3], obj.vert[obj.ind[j+2]*3+1], [obj.vert[obj.ind[j+2]*3 + 2]],1]).slice(0,3);
+				// if (i==0){
+				// 	console.log(p);
+				// }
+				var d = n[0]*p[0][0] + n[1]*p[0][1] + n[2]*p[0][2];
+				var plane_par = [n[0], n[1], n[2], d];
+
+
+				var t_coeff = plane_par[0]*line_par[1] + plane_par[1]*line_par[3] + plane_par[2]*line_par[5];
+				// if (i==15 && j==0){
+				// 	console.log(cur_v);
+				// 	console.log(t_coeff);
+				// }
+
+				if (t_coeff==0){
+					continue;
+				}
+
+				var t = (- plane_par[0]*line_par[0] - plane_par[1]*line_par[2] - plane_par[2]*line_par[4] + plane_par[3])/t_coeff;
+				var int_point = [line_par[0] + t*line_par[1], line_par[2] + t*line_par[3], line_par[4] + t*line_par[5]];
+				let dist = this.EuclideanDistance(int_point, c_ball);
+				if (dist > ball_radius){
+					continue;
+				}
+
+				var test = this.pInTriangle(int_point, [p[0], p[1], p[2]]);
+
+				if (test==true){
+					// console.log(dist);
+					// console.log([p[0], p[1], p[2]]);
+					// console.log(int_point);
+					// console.log(test);
+					if (coll){
+						ball.set_vel([-ball.vel[0]*0.8, -ball.vel[1]*0.8, -ball.vel[2]*0.8]);
+
+						var a = utils.MakeTranslateMatrix(0, 0,
+							(-cur_v[1]+int_point[1]));
+						// console.log(a);
+						ball.set_pos(this.multiplyMatrices(a, ball.worldM));
+
+						return null;
+
+					}
+					// coll = false;
+					// if (!coll){
+					// 	break;
+					//}
+
+				}
+
+
+
+
+
+			}
+		}
+
+
+
+	},
 
   //Compute euclidian distance between 2 points
-  EuclideanDistance:function(point1, point2)
-  {
-    return Math.sqrt((point1[0]-point2[0])*(point1[0]-point2[0]) +
-                    (point1[1]-point2[1])*(point1[1]-point2[1]) +
-                    (point1[2]-point2[2])*(point1[2]-point2[2]));
-  }
+  EuclideanDistance:function(point1, point2) {
+	  return Math.sqrt((point1[0] - point2[0]) * (point1[0] - point2[0]) +
+		  (point1[1] - point2[1]) * (point1[1] - point2[1]) +
+		  (point1[2] - point2[2]) * (point1[2] - point2[2]));
+  },
+
+  // Check point belongs to triangle
+	pInTriangle: function(p, [a,b,c]){
+		let S = (1/2)*this.normVec3(this.crossproduct(this.subVec3(a,b), this.subVec3(a,c)));
+		let S1 = (1/2)*this.normVec3(this.crossproduct(this.subVec3(b,p), this.subVec3(b,c)));
+		let S2 = (1/2)*this.normVec3(this.crossproduct(this.subVec3(p,a), this.subVec3(p,c)));
+		let S3 = (1/2)*this.normVec3(this.crossproduct(this.subVec3(p,a), this.subVec3(p,b)));
+		let k1 = S1/S;
+		let k2 = S2/S;
+		let k3 = S3/S;
+		if (k1 >=0 && k1 <= 1 && k2 >=0 && k2 <= 1 && k3 >=0 && k3 <= 1){
+			return(true);
+		} else {
+			return(false);
+		}
+	},
+
+	normVec3: function(a){
+		return(Math.sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2]));
+	},
+
+	subVec3: function(a,b){
+		return([a[0]-b[0], a[1]-b[1], a[2]-b[2]]);
+	}
 
 }
