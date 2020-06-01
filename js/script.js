@@ -26,7 +26,7 @@ var materialDiffColorHandle;
 //animation variables
 var p1_rot = -45.0;
 var p2_rot = -45.0;
-var x_ball = 0.0;
+var x_ball = -4.0;
 var y_ball = 1.5;
 var z_ball = 0.0;
 var deltax_ball = 0.0;
@@ -101,11 +101,15 @@ function main(){
     objects.push(ball, table, paletteL, paletteR, wallL, wallR, wallU, wallD);
   }
 
-    //Objects position, rotation, scaling and color definition
+    //Init object position and rotation
     // Sphere
+    ball.set_pos(utils.MakeWorld(x_ball, y_ball, z_ball, 0.0, 0.0, 0.0, 1.0));
     ball.set_vel([0.0, 0.0, 0.0]);
     // Table
     table.set_pos(utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0));
+    //Palettes
+    paletteL.set_pos(utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0))
+    paletteR.set_pos(utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0))
     //wall
     wallL.set_pos(utils.MakeWorld(-14.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
     wallR.set_pos(utils.MakeWorld(14.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
@@ -221,11 +225,11 @@ function main(){
         p2_rot = (p2UP)? (Math.min(30, p2_rot+deltaR)):(Math.max(-45, p2_rot-deltaR))
     }
 
-    paletteL.set_pos(utils.multiplyMatrices(utils.MakeWorld(-4.2, 2.0, 16.5, 0.0, 0.0, 0.0, 1.0),
+    paletteL.set_pos(utils.multiplyMatrices(utils.MakeWorld(-4.2, 1.2 , 16.5, 0.0, 0.0, 0.0, 1.0),
     utils.multiplyMatrices(utils.MakeTranslateMatrix(-1.5,0.0,0.0),
         utils.multiplyMatrices(utils.MakeRotateYMatrix(-p1_rot), utils.MakeTranslateMatrix(1.5,0.0,0.0)))));
 
-    paletteR.set_pos(utils.multiplyMatrices(utils.MakeWorld(4.2, 2.0, 16.5, 0.0, 0.0, 0.0, 1.0),
+    paletteR.set_pos(utils.multiplyMatrices(utils.MakeWorld(4.2, 1.2, 16.5, 0.0, 0.0, 0.0, 1.0),
     utils.multiplyMatrices(utils.MakeTranslateMatrix(1.5,0.0,0.0),
         utils.multiplyMatrices(utils.MakeRotateYMatrix(p2_rot), utils.MakeTranslateMatrix(-1.5,0.0,0.0)))));
 }
@@ -234,6 +238,14 @@ function main(){
     }
 
     function drawScene() {
+        utils.collisionDetection(ball, wallD);
+        utils.collisionDetection(ball, wallU);
+        utils.collisionDetection(ball, wallL);
+        utils.collisionDetection(ball, wallR);
+
+        utils.collisionDetection(ball, paletteL);
+
+
         animate();
 
         gl.clearColor(0.85, 0.85, 0.85, 1.0);
@@ -263,11 +275,6 @@ function main(){
           gl.bindVertexArray(vao[i]);
           gl.drawElements(gl.TRIANGLES, (objects[i].ind).length, gl.UNSIGNED_SHORT, 0 );
         }}
-
-        utils.collisionDetection(ball, wallD);
-        utils.collisionDetection(ball, wallU);
-        utils.collisionDetection(ball, wallL);
-        utils.collisionDetection(ball, wallR);
 
         window.requestAnimationFrame(drawScene);
         }
