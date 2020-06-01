@@ -179,9 +179,17 @@ function main(){
 
     //Function to handle animation
     function animate(){
+    nFrame++;
     currentTime = (new Date).getTime();
     deltaT = currentTime - lastUpdateTime;
-
+    //Collisions
+    if(lastUpdateTime){
+      utils.collisionDetection(ball, wallD);
+      utils.collisionDetection(ball, wallU);
+      utils.collisionDetection(ball, wallL);
+      utils.collisionDetection(ball, wallR);
+      if(!collided || nFrame % 5 == 0){utils.collisionDetection(ball, paletteL);}
+    }
     {//Camera movement
     if (lastUpdateTime){
         if (camx !== null) {
@@ -215,7 +223,6 @@ function main(){
       y_ball += deltay_ball;
       z_ball += deltaz_ball;
     }
-
     ball.set_pos(utils.MakeWorld(x_ball, y_ball, z_ball, 0.0, 0.0, 0.0, 1.0));}
 
     {//Palette Animation
@@ -238,14 +245,6 @@ function main(){
     }
 
     function drawScene() {
-        utils.collisionDetection(ball, wallD);
-        utils.collisionDetection(ball, wallU);
-        utils.collisionDetection(ball, wallL);
-        utils.collisionDetection(ball, wallR);
-
-        utils.collisionDetection(ball, paletteL);
-
-
         animate();
 
         gl.clearColor(0.85, 0.85, 0.85, 1.0);
@@ -359,6 +358,7 @@ class dynBall extends Item{
   }
 }
 var collided;
+var nFrame = 0;
 {//Functions calling
 window.onload = main;
 window.addEventListener("keydown", paletteUPMovement, false);
