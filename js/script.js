@@ -24,11 +24,7 @@ var lightDirectionHandle;
 var materialDiffColorHandle;
 
 //animation variables
-var p1_rot = -45.0;
-var p2_rot = -45.0;
-var x_ball = -4.0;
-var y_ball = 1.5;
-var z_ball = 0.0;
+var deltaRot = 0.0;
 var deltax_ball = 0.0;
 var deltay_ball = 0.0;
 var deltaz_ball = 0.0;
@@ -39,6 +35,8 @@ var cy = 10.0;
 var cz = 25.0;
 var camx = null;
 var camy = null;
+
+var nFrame = 0;
 }
 
 {//Shader
@@ -52,7 +50,7 @@ uniform mat4 nMatrix;
 uniform mat4 matrix;
 
 void main() {
-  fsNormal = mat3(nMatrix) * inNormal; 
+  fsNormal = mat3(nMatrix) * inNormal;
   //fsNormal = inNormal;
   gl_Position = matrix * vec4(inPosition, 1.0);
 }`;
@@ -93,8 +91,8 @@ function main(){
     var objects = new Array();
     var ball = new dynBall("ball", draw_ball(), [0.2, 0.2, 1.0]);
     var table = new Item("table", draw_par(15.0, 0.5, 20.0), [1.0, 0.65, 0.0]);
-    var paletteL = new Item("paletteL", draw_par(3.0, 0.3, 1.0), [1.0, 1.0, 1.0]);
-    var paletteR = new Item("paletteR", draw_par(3.0, 1.4, 1.0), [1.0, 1.0, 1.0]);
+    var paletteL = new dynPalette("paletteL", draw_par(3.0, 0.3, 1.0), [1.0, 1.0, 1.0]);
+    var paletteR = new dynPalette("paletteR", draw_par(3.0, 0.3, 1.0), [1.0, 1.0, 1.0]);
     var wallL = new Item("wallL", draw_par(1.0 ,1.0 ,20.0), [1.0, 0.65, 0.0]);
     var wallR = new Item("wallR", draw_par(1.0 ,1.0 ,20.0), [1.0, 0.65, 0.0]);
     var wallU = new Item("wallU", draw_par(13.0 ,1.0, 0.5), [1.0, 0.65, 0.0]);
@@ -102,23 +100,27 @@ function main(){
     objects.push(ball, table, paletteL, paletteR, wallL, wallR, wallU, wallD);
   }
 
-    //Init object position and rotation
+    {//Init object position and rotation
     // Sphere
-    ball.set_pos(utils.MakeWorld(x_ball, y_ball, z_ball, 0.0, 0.0, 0.0, 1.0));
+    ball.set_pos(utils.MakeWorld(-4.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
     ball.set_vel([0.0, 0.0, 0.0]);
     // Table
     table.set_pos(utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0));
     //Palettes
-    paletteL.set_pos(utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0))
-    paletteR.set_pos(utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0))
+    paletteL.set_pos(utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0));
+    paletteR.set_pos(utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0));
+    paletteL.set_maxminangle(-45, 30);
+    paletteR.set_maxminangle(-45,30);
+    paletteL.set_angle(paletteL.max_angle);
+    paletteR.set_angle(paletteR.max_angle);
     //wall
     wallL.set_pos(utils.MakeWorld(-14.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
     wallR.set_pos(utils.MakeWorld(14.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
     wallU.set_pos(utils.MakeWorld(0.0, 1.5, -19.5, 0.0, 0.0, 0.0, 1.0));
-    wallD.set_pos(utils.MakeWorld(0.0, 1.5, 19.5, 0.0, 0.0, 0.0, 1.0));
+    wallD.set_pos(utils.MakeWorld(0.0, 1.5, 19.5, 0.0, 0.0, 0.0, 1.0));}
 
     //For animation
-    var deltaT;
+
     var lastUpdateTime = (new Date).getTime();
 
     {//Canvas
@@ -183,13 +185,14 @@ function main(){
     function animate(){
     nFrame++;
     currentTime = (new Date).getTime();
-    deltaT = currentTime - lastUpdateTime;
+    let deltaT = currentTime - lastUpdateTime;
+
     //Collisions
     if(lastUpdateTime){
-      utils.collisionDetection(ball,paletteL);
+      utils.collisionDetection(ball,[paletteL, paletteR]);
+      utils.checkBoundaries(ball, wallL, wallR, wallU, wallD);
     }
 
-    // utils.collisionDetection(ball, wallL);
     {//Camera movement
     if (lastUpdateTime){
         if (camx !== null) {
@@ -221,27 +224,24 @@ function main(){
       deltax_ball = (ball.vel[0]*deltaT) / 1000.0;
       deltay_ball = (ball.vel[1]*deltaT) / 1000.0;
       deltaz_ball = (ball.vel[2]*deltaT) / 1000.0;
-      // ball.set_pos(ball.pos()[0]);
-      // ball.pos()[1] += deltay_ball;
-      // ball.pos()[2] += deltaz_ball;
     }
     ball.set_pos(utils.MakeWorld(ball.pos()[0]+deltax_ball, ball.pos()[1]+deltay_ball, ball.pos()[2]+deltaz_ball, 0.0, 0.0, 0.0, 1.0));}
 
     {//Palette Animation
-    let deltaR = (350 * deltaT) / 1000.0;
+    deltaRot = (350 * deltaT) / 1000.0;
     if(lastUpdateTime){
-        p1_rot = (p1UP)? (Math.min(30, p1_rot+deltaR)):(Math.max(-45, p1_rot-deltaR));
-        p2_rot = (p2UP)? (Math.min(30, p2_rot+deltaR)):(Math.max(-45, p2_rot-deltaR))
+        paletteL.set_angle((p1UP)? (Math.min(paletteL.min_angle, paletteL.angle+deltaRot)):(Math.max(paletteL.max_angle, paletteL.angle-deltaRot)));
+        paletteR.set_angle((p2UP)? (Math.min(paletteR.min_angle, paletteR.angle+deltaRot)):(Math.max(paletteR.max_angle, paletteR.angle-deltaRot)));
     }
 
     paletteL.set_pos(utils.multiplyMatrices(utils.MakeWorld(-4.2, 1.2 , 16.5, 0.0, 0.0, 0.0, 1.0),
     utils.multiplyMatrices(utils.MakeTranslateMatrix(-1.5,0.0,0.0),
-        utils.multiplyMatrices(utils.MakeRotateYMatrix(-p1_rot), utils.MakeTranslateMatrix(1.5,0.0,0.0)))));
+        utils.multiplyMatrices(utils.MakeRotateYMatrix(-paletteL.angle), utils.MakeTranslateMatrix(1.5,0.0,0.0)))));
 
     paletteR.set_pos(utils.multiplyMatrices(utils.MakeWorld(4.2, 1.2, 16.5, 0.0, 0.0, 0.0, 1.0),
     utils.multiplyMatrices(utils.MakeTranslateMatrix(1.5,0.0,0.0),
-        utils.multiplyMatrices(utils.MakeRotateYMatrix(p2_rot), utils.MakeTranslateMatrix(-1.5,0.0,0.0)))));
-}
+        utils.multiplyMatrices(utils.MakeRotateYMatrix(paletteR.angle), utils.MakeTranslateMatrix(-1.5,0.0,0.0)))));
+    }
 
     lastUpdateTime = currentTime;
     }
@@ -359,11 +359,30 @@ class dynBall extends Item{
   }
 
   gravity_update(deltaT){
-    this.vel[2] += (3 * deltaT) / 1000;
+    this.vel[2] += (9.81 * deltaT) / 1000;
   }
 }
+
+class dynPalette extends Item{
+  set_angle(angle){
+    this.angle = angle;
+  }
+
+  set_maxminangle(maxangle,minangle){
+    this.max_angle = maxangle;
+    this.min_angle = minangle;
+  }
+
+  get_vel(deltaR){
+    return (this.angle == this.max_angle || this.angle == this.min_angle)?
+            ([0.0,0.0,0.0]):([(deltaR/6.0)*Math.cos(utils.degToRad(90-this.angle)), 0.0, (deltaR/6.0)*Math.sin(utils.degToRad(90-this.angle))]);
+  }
+
+}
+
 var coll = true;
-var nFrame = 0;
+var vx_p= 0.0;
+var vz_p = 0.0;
 {//Functions calling
 window.onload = main;
 window.addEventListener("keydown", paletteUPMovement, false);

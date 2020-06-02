@@ -663,90 +663,100 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 		let c_ball = ball.pos();
 		let v_ball = ball.vert;
 
-
+    //Compute ball vertices in world space
 		var vert_list = []; // ball vertices
 		for (i=0; i<(v_ball.length-2); i=i+3){
 			var world_v = this.multiplyMatrixVector(ball.worldM, [v_ball[i], v_ball[i+1], v_ball[i+2], 1.0]);
 			vert_list.push([world_v[0]/world_v[3], world_v[1]/world_v[3], world_v[2]/world_v[3]]);
 		}
+
 		let ball_radius = this.EuclideanDistance(c_ball, vert_list[0]);
-		var nMatrix = utils.sub3x3from4x4(utils.transposeMatrix(utils.invertMatrix(utils.transposeMatrix(obj.worldM))));
 
-		for(i=0; i<vert_list.length; i++){
-			// if (!coll){
-			// 	break;
-			// }
-			let cur_v = vert_list[i];
-			let line_par = [c_ball[0], (cur_v[0] - c_ball[0]), c_ball[1], (cur_v[1] - c_ball[1]), c_ball[2], (cur_v[2] - c_ball[2])];
-			for (j=0; j<obj.ind.length-2; j=j+3){
-				var n = this.normalizeVec3(this.multiplyMatrix3Vector3(nMatrix, [obj.norm[obj.ind[j]*3], obj.norm[obj.ind[j]*3 + 1], obj.norm[obj.ind[j]*3 + 2]]));
-				// if (i==0){
-				// 	console.log(obj.norm);
-				// 	console.log(n);
-				// }
-				var p = [];
-				p[0] = this.multiplyMatrixVector(obj.worldM, [obj.vert[obj.ind[j]*3], obj.vert[obj.ind[j]*3+1], [obj.vert[obj.ind[j]*3 + 2]],1]).slice(0,3);
-				p[1] = this.multiplyMatrixVector(obj.worldM, [obj.vert[obj.ind[j+1]*3], obj.vert[obj.ind[j+1]*3+1], [obj.vert[obj.ind[j+1]*3 + 2]],1]).slice(0,3);
-				p[2] = this.multiplyMatrixVector(obj.worldM, [obj.vert[obj.ind[j+2]*3], obj.vert[obj.ind[j+2]*3+1], [obj.vert[obj.ind[j+2]*3 + 2]],1]).slice(0,3);
-				// if (i==0){
-				// 	console.log(p);
-				// }
-				var d = n[0]*p[0][0] + n[1]*p[0][1] + n[2]*p[0][2];
-				var plane_par = [n[0], n[1], n[2], d];
+    //obj is a vector of objects to be checked for collisions with the ball
+    for(k=0; k<obj.length; k++){
+      var nMatrix = utils.sub3x3from4x4(utils.transposeMatrix(utils.invertMatrix(utils.transposeMatrix(obj[k].worldM))));
 
-
-				var t_coeff = plane_par[0]*line_par[1] + plane_par[1]*line_par[3] + plane_par[2]*line_par[5];
-				// if (i==15 && j==0){
-				// 	console.log(cur_v);
-				// 	console.log(t_coeff);
-				// }
-
-				if (t_coeff==0){
-					continue;
-				}
-
-				var t = (- plane_par[0]*line_par[0] - plane_par[1]*line_par[2] - plane_par[2]*line_par[4] + plane_par[3])/t_coeff;
-				var int_point = [line_par[0] + t*line_par[1], line_par[2] + t*line_par[3], line_par[4] + t*line_par[5]];
-				let dist = this.EuclideanDistance(int_point, c_ball);
-				if (dist > ball_radius){
-					continue;
-				}
-
-				var test = this.pInTriangle(int_point, [p[0], p[1], p[2]]);
-
-				if (test==true){
-					// console.log(dist);
-					// console.log([p[0], p[1], p[2]]);
-					// console.log(int_point);
-					// console.log(test);
-					if (coll){
-						ball.set_vel([-ball.vel[0]*0.8, -ball.vel[1]*0.8, -ball.vel[2]*0.8]);
-
-						var a = utils.MakeTranslateMatrix(0, 0,
-							(-cur_v[1]+int_point[1]));
-						// console.log(a);
-						ball.set_pos(this.multiplyMatrices(a, ball.worldM));
-
-						return null;
-
-					}
-					// coll = false;
-					// if (!coll){
-					// 	break;
-					//}
-
-				}
+  		for(i=0; i<vert_list.length; i++){
+  			// if (!coll){
+  			// 	break;
+  			// }
+  			let cur_v = vert_list[i];
+  			let line_par = [c_ball[0], (cur_v[0] - c_ball[0]), c_ball[1], (cur_v[1] - c_ball[1]), c_ball[2], (cur_v[2] - c_ball[2])];
+  			for (j=0; j<obj[k].ind.length-2; j=j+3){
+  				var n = this.normalizeVec3(this.multiplyMatrix3Vector3(nMatrix, [obj[k].norm[obj[k].ind[j]*3], obj[k].norm[obj[k].ind[j]*3 + 1], obj[k].norm[obj[k].ind[j]*3 + 2]]));
+  				// if (i==0){
+  				// 	console.log(obj[k].norm);
+  				// 	console.log(n);
+  				// }
+  				var p = [];
+  				p[0] = this.multiplyMatrixVector(obj[k].worldM, [obj[k].vert[obj[k].ind[j]*3], obj[k].vert[obj[k].ind[j]*3+1], [obj[k].vert[obj[k].ind[j]*3 + 2]],1]).slice(0,3);
+  				p[1] = this.multiplyMatrixVector(obj[k].worldM, [obj[k].vert[obj[k].ind[j+1]*3], obj[k].vert[obj[k].ind[j+1]*3+1], [obj[k].vert[obj[k].ind[j+1]*3 + 2]],1]).slice(0,3);
+  				p[2] = this.multiplyMatrixVector(obj[k].worldM, [obj[k].vert[obj[k].ind[j+2]*3], obj[k].vert[obj[k].ind[j+2]*3+1], [obj[k].vert[obj[k].ind[j+2]*3 + 2]],1]).slice(0,3);
+  				// if (i==0){
+  				// 	console.log(p);
+  				// }
+  				var d = n[0]*p[0][0] + n[1]*p[0][1] + n[2]*p[0][2];
+  				var plane_par = [n[0], n[1], n[2], d];
 
 
+  				var t_coeff = plane_par[0]*line_par[1] + plane_par[1]*line_par[3] + plane_par[2]*line_par[5];
+  				 if (i==15 && j==0){
+             //console.log(d);
+  				 	//console.log(cur_v);
+  				 	//console.log(t_coeff);
+  				 }
 
+  				if (t_coeff==0){
+  					continue;
+  				}
 
+  				var t = (- plane_par[0]*line_par[0] - plane_par[1]*line_par[2] - plane_par[2]*line_par[4] + plane_par[3])/t_coeff;
+  				var int_point = [line_par[0] + t*line_par[1], line_par[2] + t*line_par[3], line_par[4] + t*line_par[5]];
+  				let dist = this.EuclideanDistance(int_point, c_ball);
+  				if (dist > ball_radius){
+  					continue;
+  				}
 
-			}
-		}
+  				var test = this.pInTriangle(int_point, [p[0], p[1], p[2]]);
 
+  				if (test==true){
+  					// console.log(dist);
+  					// console.log([p[0], p[1], p[2]]);
+  					// console.log(int_point);
+  					// console.log(test);
+  					if (coll){
+  						ball.set_vel([obj[k].get_vel(deltaRot)[0] - ball.vel[0], -ball.vel[1], -obj[k].get_vel(deltaRot)[2] - ball.vel[2]]);
+              console.log(vx_p);
+  						var a = utils.MakeTranslateMatrix(0, 0, (-cur_v[1]+int_point[1]));
+  						// console.log(a);
+  						ball.set_pos(this.multiplyMatrices(a, ball.worldM));
 
+  						return null;
+
+  					}
+  					// coll = false;
+  					// if (!coll){
+  					// 	break;
+  					//}
+
+  				}
+  			}
+  		}
+    }
 
 	},
+
+  checkBoundaries:function(ball, wallL, wallR, wallU, wallD){
+    let c_ball = ball.pos();
+    let ball_radius = 1.0;
+    let c_wL = wallL.pos();
+    let c_wR = wallR.pos();
+    let c_wU = wallU.pos();
+    let c_wD = wallD.pos();
+    if(c_ball[0] - ball_radius < c_wL[0] + 1.0 || c_ball[0] + ball_radius > c_wR[0] -1.0 || c_ball[2] - ball_radius < c_wU[2] + 0.5 || c_ball[2] + ball_radius > c_wD[2] - 0.5){
+      ball.set_vel([-ball.vel[0], -ball.vel[1], -ball.vel[2]]);
+    }
+  },
 
   //Compute euclidian distance between 2 points
   EuclideanDistance:function(point1, point2) {
