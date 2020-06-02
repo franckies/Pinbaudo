@@ -265,9 +265,9 @@ function main(){
           // var directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
 
           gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
-          var normalMatrix = utils.transposeMatrix(utils.invertMatrix(utils.transposeMatrix(objects[i].worldM)));
+          //var normalMatrix = utils.transposeMatrix(utils.invertMatrix(utils.transposeMatrix(objects[i].worldM)));
 
-          gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(normalMatrix));
+          gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(objects[i].worldM));
           gl.uniform3fv(materialDiffColorHandle, objects[i].col);
           gl.uniform1f(alphaLocation, 1.0);
           //Set transparency for the Down WALL
@@ -359,7 +359,7 @@ class dynBall extends Item{
   }
 
   gravity_update(deltaT){
-    this.vel[2] += (9.81 * deltaT) / 1000;
+    this.vel[2] += (9.8 * deltaT) / 1000;
   }
 }
 

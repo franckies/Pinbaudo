@@ -674,7 +674,7 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 
     //obj is a vector of objects to be checked for collisions with the ball
     for(k=0; k<obj.length; k++){
-      var nMatrix = utils.sub3x3from4x4(utils.transposeMatrix(utils.invertMatrix(utils.transposeMatrix(obj[k].worldM))));
+      // var nMatrix = utils.sub3x3from4x4(utils.transposeMatrix(utils.invertMatrix(utils.transposeMatrix(obj[k].worldM))));
 
   		for(i=0; i<vert_list.length; i++){
   			// if (!coll){
@@ -683,7 +683,8 @@ createProgram:function(gl, vertexShader, fragmentShader) {
   			let cur_v = vert_list[i];
   			let line_par = [c_ball[0], (cur_v[0] - c_ball[0]), c_ball[1], (cur_v[1] - c_ball[1]), c_ball[2], (cur_v[2] - c_ball[2])];
   			for (j=0; j<obj[k].ind.length-2; j=j+3){
-  				var n = this.normalizeVec3(this.multiplyMatrix3Vector3(nMatrix, [obj[k].norm[obj[k].ind[j]*3], obj[k].norm[obj[k].ind[j]*3 + 1], obj[k].norm[obj[k].ind[j]*3 + 2]]));
+  				// var n = this.normalizeVec3(this.multiplyMatrix3Vector3(obj[k].worldM, [obj[k].norm[obj[k].ind[j]*3], obj[k].norm[obj[k].ind[j]*3 + 1], obj[k].norm[obj[k].ind[j]*3 + 2]]));
+				var n = this.multiplyMatrix3Vector3(obj[k].worldM, [obj[k].norm[obj[k].ind[j]*3], obj[k].norm[obj[k].ind[j]*3 + 1], obj[k].norm[obj[k].ind[j]*3 + 2]]);
   				// if (i==0){
   				// 	console.log(obj[k].norm);
   				// 	console.log(n);
@@ -700,11 +701,6 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 
 
   				var t_coeff = plane_par[0]*line_par[1] + plane_par[1]*line_par[3] + plane_par[2]*line_par[5];
-  				 if (i==15 && j==0){
-             //console.log(d);
-  				 	//console.log(cur_v);
-  				 	//console.log(t_coeff);
-  				 }
 
   				if (t_coeff==0){
   					continue;
@@ -716,7 +712,10 @@ createProgram:function(gl, vertexShader, fragmentShader) {
   				if (dist > ball_radius){
   					continue;
   				}
-
+  				if (dist <= ball_radius-0.1) {
+					// console.log(c_ball);
+					// console.log(int_point);
+				}
   				var test = this.pInTriangle(int_point, [p[0], p[1], p[2]]);
 
   				if (test==true){
@@ -726,10 +725,12 @@ createProgram:function(gl, vertexShader, fragmentShader) {
   					// console.log(test);
   					if (coll){
   						ball.set_vel([obj[k].get_vel(deltaRot)[0] - ball.vel[0], -ball.vel[1], -obj[k].get_vel(deltaRot)[2] - ball.vel[2]]);
-              console.log(vx_p);
-  						var a = utils.MakeTranslateMatrix(0, 0, (-cur_v[1]+int_point[1]));
+
+  						var a = utils.MakeTranslateMatrix((cur_v[0]-int_point[0]), 0, (-cur_v[2]+int_point[2]));
+  						console.log(cur_v[2]);
+  						console.log(int_point[2]);
   						// console.log(a);
-  						ball.set_pos(this.multiplyMatrices(a, ball.worldM));
+						ball.set_pos(this.multiplyMatrices(ball.worldM, a));
 
   						return null;
 
