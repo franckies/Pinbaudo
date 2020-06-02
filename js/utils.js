@@ -712,7 +712,7 @@ createProgram:function(gl, vertexShader, fragmentShader) {
   				if (dist > ball_radius){
   					continue;
   				}
-  				if (dist <= ball_radius-0.1) {
+  				if (dist <= ball_radius+0.2) {
 					// console.log(c_ball);
 					// console.log(int_point);
 				}
@@ -726,11 +726,11 @@ createProgram:function(gl, vertexShader, fragmentShader) {
   					if (coll){
   						ball.set_vel([obj[k].get_vel(deltaRot)[0] - ball.vel[0], -ball.vel[1], -obj[k].get_vel(deltaRot)[2] - ball.vel[2]]);
 
-  						var a = utils.MakeTranslateMatrix((cur_v[0]-int_point[0]), 0, (-cur_v[2]+int_point[2]));
-  						console.log(cur_v[2]);
-  						console.log(int_point[2]);
+  						//var a = utils.MakeTranslateMatrix((cur_v[0]-int_point[0]), 0, (-cur_v[2]+int_point[2]));
+  						//console.log(cur_v[2]);
+  						//console.log(int_point[2]);
   						// console.log(a);
-						ball.set_pos(this.multiplyMatrices(ball.worldM, a));
+						//ball.set_pos(this.multiplyMatrices(ball.worldM, a));
 
   						return null;
 
