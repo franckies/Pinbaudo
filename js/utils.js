@@ -720,10 +720,10 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 
   				if (test==true){
   					// console.log(dist);
-					console.log("Collision");
-  					console.log([p[0], p[1], p[2]]);
-  					console.log(int_point);
-  					console.log(dist);
+					// console.log("Collision");
+  					// console.log([p[0], p[1], p[2]]);
+  					// console.log(int_point);
+  					// console.log(dist);
 					//console.log(plane_par);
 					// console.log([obj[k].norm[obj[k].ind[j]*3], obj[k].norm[obj[k].ind[j]*3 + 1], obj[k].norm[obj[k].ind[j]*3 + 2]]);
 					// console.log(obj[k].worldM);
@@ -782,10 +782,15 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 		let k1 = S1/S;
 		let k2 = S2/S;
 		let k3 = S3/S;
-		if (k1 >=0 && k1 <= 1 && k2 >=0 && k2 <= 1 && k3 >=0 && k3 <= 1){
-			return(true);
+		// if (k1 >=0 && k1 <= 1 && k2 >=0 && k2 <= 1 && k3 >=0 && k3 <= 1){
+		// 	return(true);
+		// } else {
+		// 	return(false);
+		// }
+		if (S1+S2+S3==S){
+			return true;
 		} else {
-			return(false);
+			return false;
 		}
 	},
 
