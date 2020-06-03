@@ -91,8 +91,8 @@ function main(){
     var objects = new Array();
     var ball = new dynBall("ball", draw_ball(), [0.2, 0.2, 1.0]);
     var table = new Item("table", draw_par(15.0, 0.5, 20.0), [1.0, 0.65, 0.0]);
-    var paletteL = new dynPalette("paletteL", draw_par(3.0, 0.3, 1.0), [1.0, 1.0, 1.0]);
-    var paletteR = new dynPalette("paletteR", draw_par(3.0, 0.3, 1.0), [1.0, 1.0, 1.0]);
+    var paletteL = new dynPalette("paletteL", draw_par(3.0, 2, 1.0), [1.0, 1.0, 1.0]);
+    var paletteR = new dynPalette("paletteR", draw_par(3.0, 2, 1.0), [1.0, 1.0, 1.0]);
     var wallL = new Item("wallL", draw_par(1.0 ,1.0 ,20.0), [1.0, 0.65, 0.0]);
     var wallR = new Item("wallR", draw_par(1.0 ,1.0 ,20.0), [1.0, 0.65, 0.0]);
     var wallU = new Item("wallU", draw_par(13.0 ,1.0, 0.5), [1.0, 0.65, 0.0]);
@@ -102,7 +102,7 @@ function main(){
 
     {//Init object position and rotation
     // Sphere
-    ball.set_pos(utils.MakeWorld(-4.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
+    ball.set_pos(utils.MakeWorld(-5, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
     ball.set_vel([0.0, 0.0, 0.0]);
     // Table
     table.set_pos(utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0));
@@ -121,7 +121,7 @@ function main(){
 
     //For animation
 
-    var lastUpdateTime = (new Date).getTime();
+    lastUpdateTime = (new Date).getTime();
 
     {//Canvas
     canvas = document.getElementById("c");
@@ -188,10 +188,10 @@ function main(){
     let deltaT = currentTime - lastUpdateTime;
 
     //Collisions
-    if(lastUpdateTime){
-      utils.collisionDetection(ball,[paletteL, paletteR]);
-      utils.checkBoundaries(ball, wallL, wallR, wallU, wallD);
-    }
+    // if(lastUpdateTime){
+    //   utils.collisionDetection(ball,[paletteL, paletteR]);
+    //   utils.checkBoundaries(ball, wallL, wallR, wallU, wallD);
+    // }
 
     {//Camera movement
     if (lastUpdateTime){
@@ -220,6 +220,8 @@ function main(){
     if(lastUpdateTime){
       if(coll){
           ball.gravity_update(deltaT);
+          utils.collisionDetection(ball,[paletteL, paletteR]);
+          utils.checkBoundaries(ball, wallL, wallR, wallU, wallD);
       }
       deltax_ball = (ball.vel[0]*deltaT) / 1000.0;
       deltay_ball = (ball.vel[1]*deltaT) / 1000.0;

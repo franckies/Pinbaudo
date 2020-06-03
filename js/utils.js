@@ -684,7 +684,7 @@ createProgram:function(gl, vertexShader, fragmentShader) {
   			let line_par = [c_ball[0], (cur_v[0] - c_ball[0]), c_ball[1], (cur_v[1] - c_ball[1]), c_ball[2], (cur_v[2] - c_ball[2])];
   			for (j=0; j<obj[k].ind.length-2; j=j+3){
   				// var n = this.normalizeVec3(this.multiplyMatrix3Vector3(obj[k].worldM, [obj[k].norm[obj[k].ind[j]*3], obj[k].norm[obj[k].ind[j]*3 + 1], obj[k].norm[obj[k].ind[j]*3 + 2]]));
-				var n = this.multiplyMatrix3Vector3(obj[k].worldM, [obj[k].norm[obj[k].ind[j]*3], obj[k].norm[obj[k].ind[j]*3 + 1], obj[k].norm[obj[k].ind[j]*3 + 2]]);
+				var n = this.multiplyMatrix3Vector3(this.sub3x3from4x4(obj[k].worldM), [obj[k].norm[obj[k].ind[j]*3], obj[k].norm[obj[k].ind[j]*3 + 1], obj[k].norm[obj[k].ind[j]*3 + 2]]);
   				// if (i==0){
   				// 	console.log(obj[k].norm);
   				// 	console.log(n);
@@ -712,7 +712,7 @@ createProgram:function(gl, vertexShader, fragmentShader) {
   				if (dist > ball_radius){
   					continue;
   				}
-  				if (dist <= ball_radius+0.2) {
+  				if (dist <= ball_radius+0.0) {
 					// console.log(c_ball);
 					// console.log(int_point);
 				}
@@ -720,12 +720,18 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 
   				if (test==true){
   					// console.log(dist);
-  					// console.log([p[0], p[1], p[2]]);
-  					// console.log(int_point);
+					console.log("Collision");
+  					console.log([p[0], p[1], p[2]]);
+  					console.log(int_point);
+  					console.log(dist);
+					//console.log(plane_par);
+					// console.log([obj[k].norm[obj[k].ind[j]*3], obj[k].norm[obj[k].ind[j]*3 + 1], obj[k].norm[obj[k].ind[j]*3 + 2]]);
+					// console.log(obj[k].worldM);
+					// console.log(n);
   					// console.log(test);
   					if (coll){
-  						ball.set_vel([obj[k].get_vel(deltaRot)[0] - ball.vel[0], -ball.vel[1], -obj[k].get_vel(deltaRot)[2] - ball.vel[2]]);
-
+  						// ball.set_vel([obj[k].get_vel(deltaRot)[0] - ball.vel[0], -ball.vel[1], -obj[k].get_vel(deltaRot)[2] - ball.vel[2]]);
+						ball.set_vel([0,0,0])
   						//var a = utils.MakeTranslateMatrix((cur_v[0]-int_point[0]), 0, (-cur_v[2]+int_point[2]));
   						//console.log(cur_v[2]);
   						//console.log(int_point[2]);
@@ -755,7 +761,8 @@ createProgram:function(gl, vertexShader, fragmentShader) {
     let c_wU = wallU.pos();
     let c_wD = wallD.pos();
     if(c_ball[0] - ball_radius < c_wL[0] + 1.0 || c_ball[0] + ball_radius > c_wR[0] -1.0 || c_ball[2] - ball_radius < c_wU[2] + 0.5 || c_ball[2] + ball_radius > c_wD[2] - 0.5){
-      ball.set_vel([-ball.vel[0], -ball.vel[1], -ball.vel[2]]);
+      //ball.set_vel([-ball.vel[0], -ball.vel[1], -ball.vel[2]]);
+		ball.set_vel([0,0,0])
     }
   },
 
