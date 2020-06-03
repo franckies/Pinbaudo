@@ -1,7 +1,7 @@
 function draw_ball(){
     var i;
     var vert5 = [[0.0, 1.0,0.0]];
-	var norm5 = [[0.0, 1.0,0.0]];
+	  var norm5 = [[0.0, 1.0,0.0]];
 	///// Creates vertices
 	k = 1;
 	for(j = 1; j < 18; j++) {
