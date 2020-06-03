@@ -36,6 +36,8 @@ var cz = 25.0;
 var camx = null;
 var camy = null;
 
+var ballReset = false;
+k_dissip  = 0.7;
 var nFrame = 0;
 }
 
@@ -91,8 +93,8 @@ function main(){
     var objects = new Array();
     var ball = new dynBall("ball", draw_ball(), [0.2, 0.2, 1.0]);
     var table = new Item("table", draw_par(15.0, 0.5, 20.0), [1.0, 0.65, 0.0]);
-    var paletteL = new dynPalette("paletteL", draw_par(3.0, 2, 1.0), [1.0, 1.0, 1.0]);
-    var paletteR = new dynPalette("paletteR", draw_par(3.0, 2, 1.0), [1.0, 1.0, 1.0]);
+    var paletteL = new dynPalette("paletteL", draw_par(3.0, 0.5, 1.0), [1.0, 1.0, 1.0]);
+    var paletteR = new dynPalette("paletteR", draw_par(3.0, 0.5, 1.0), [1.0, 1.0, 1.0]);
     var wallL = new Item("wallL", draw_par(1.0 ,1.0 ,20.0), [1.0, 0.65, 0.0]);
     var wallR = new Item("wallR", draw_par(1.0 ,1.0 ,20.0), [1.0, 0.65, 0.0]);
     var wallU = new Item("wallU", draw_par(13.0 ,1.0, 0.5), [1.0, 0.65, 0.0]);
@@ -102,7 +104,7 @@ function main(){
 
     {//Init object position and rotation
     // Sphere
-    ball.set_pos(utils.MakeWorld(-5, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
+    ball.set_pos(utils.MakeWorld(4.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
     ball.set_vel([0.0, 0.0, 0.0]);
     // Table
     table.set_pos(utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0));
@@ -187,12 +189,6 @@ function main(){
     currentTime = (new Date).getTime();
     let deltaT = currentTime - lastUpdateTime;
 
-    //Collisions
-    // if(lastUpdateTime){
-    //   utils.collisionDetection(ball,[paletteL, paletteR]);
-    //   utils.checkBoundaries(ball, wallL, wallR, wallU, wallD);
-    // }
-
     {//Camera movement
     if (lastUpdateTime){
         if (camx !== null) {
@@ -227,7 +223,15 @@ function main(){
       deltay_ball = (ball.vel[1]*deltaT) / 1000.0;
       deltaz_ball = (ball.vel[2]*deltaT) / 1000.0;
     }
-    ball.set_pos(utils.MakeWorld(ball.pos()[0]+deltax_ball, ball.pos()[1]+deltay_ball, ball.pos()[2]+deltaz_ball, 0.0, 0.0, 0.0, 1.0));}
+    ball.set_pos(utils.MakeWorld(ball.pos()[0]+deltax_ball, ball.pos()[1]+deltay_ball, ball.pos()[2]+deltaz_ball, 0.0, 0.0, 0.0, 1.0));
+
+    //Reset Ball position when R is pressed
+    if(lastUpdateTime && ballReset){
+      ball.set_pos(utils.MakeWorld(-3.0,1.5,0.0,0.0,0.0,0.0,1.0));
+      ball.set_vel([0.0,0.0,0.0]);
+      ballReset = false;
+    }
+  }
 
     {//Palette Animation
     deltaRot = (350 * deltaT) / 1000.0;
@@ -336,6 +340,14 @@ function moveCamera(e){
   }
 }}
 
+{//Ball recenter key press
+function resetBall(e){
+  if(e.keyCode == 82) //r
+  {
+    ballReset = true;
+  }
+}}
+
 //Objects class
 class Item {
     constructor(name, [vertices,normals,indices], color){
@@ -375,19 +387,22 @@ class dynPalette extends Item{
     this.min_angle = minangle;
   }
 
-  get_vel(deltaR){
+  get_vel(deltaR, point){
+    var rot_center = (this.name == "paletteL")?([-5.7, 1.2, 16.5]):([5.7, 1.2, 16.5]);
+    point = Math.sqrt((rot_center[0]-point[0])*(rot_center[0]-point[0]) + (rot_center[2]-point[2])*(rot_center[2]-point[2]));
     return (this.angle == this.max_angle || this.angle == this.min_angle)?
-            ([0.0,0.0,0.0]):([(deltaR/6.0)*Math.cos(utils.degToRad(90-this.angle)), 0.0, (deltaR/6.0)*Math.sin(utils.degToRad(90-this.angle))]);
+            ([0.0,0.0,0.0]):([(deltaR*point)*Math.cos(utils.degToRad(90-this.angle)), 0.0, (deltaR*point)*Math.sin(utils.degToRad(90-this.angle))]);
   }
 
 }
 
 var coll = true;
-var vx_p= 0.0;
-var vz_p = 0.0;
+
+
 {//Functions calling
 window.onload = main;
 window.addEventListener("keydown", paletteUPMovement, false);
 window.addEventListener("keyup", paletteDOWNMovement, false);
 window.addEventListener("keydown", moveCamera, false);
+window.addEventListener("keydown", resetBall, false);
 }
