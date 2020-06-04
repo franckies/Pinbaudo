@@ -37,7 +37,7 @@ var camx = null;
 var camy = null;
 
 var ballReset = false;
-k_dissip  = 0.7;
+var  k_dissip  = 0.7;
 var nFrame = 0;
 }
 

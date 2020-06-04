@@ -689,13 +689,22 @@ createProgram:function(gl, vertexShader, fragmentShader) {
                 ball.set_pos(this.multiplyMatrices(ball.worldM, a));
               }
               else{
-                norm_vel = this.normalizeVec3([-ball.vel[0], -ball.vel[1], -ball.vel[2]]);
+                norm_vel = this.normalizeVec3([ball.vel[0],ball.vel[1],ball.vel[2]]);
                 scalar_prod = norm_vel[0]*n[0] + norm_vel[1]*n[1] + norm_vel[2]*n[2];
                 alpha = Math.acos(scalar_prod);
+
+                alpha = (alpha*180/Math.PI == 45)? -alpha:alpha;
+                console.log(alpha*180/Math.PI);
+                v = this.normVec3(ball.vel);
+
                 if(obj[k].name == "paletteL"){
+                  v_x = -v*Math.cos(alpha);
+                  v_z = v*Math.sin(alpha);
                   ball.set_vel([k_dissip*(-ball.vel[0]*Math.sin(alpha)+ball.vel[2]*Math.cos(alpha)),0.0,(ball.vel[0]*Math.sin(alpha)-ball.vel[2]*Math.cos(alpha))*k_dissip]);
                 }
                 else{
+                  v_x = v*Math.cos(alpha);
+                  v_z = v*Math.sin(alpha);
                   ball.set_vel([(-ball.vel[0]*Math.sin(alpha)-ball.vel[2]*Math.cos(alpha))*k_dissip,0.0,(ball.vel[0]*Math.sin(alpha)-ball.vel[2]*Math.cos(alpha))*k_dissip]);
                 }
                 //Translate a little bit the ball to avoid going inside the palettes
@@ -742,7 +751,7 @@ createProgram:function(gl, vertexShader, fragmentShader) {
       ball.set_pos(this.multiplyMatrices(ball.worldM, a));
     }
     //Check left and right space behind palettes
-    if(c_ball[2]>13 && (c_ball[0]< -5.7 || c_ball[0] > 5.7))
+    if(c_ball[2]>14 && (c_ball[0]< -6.7 || c_ball[0] > 6.7))
     {
       ball.set_vel([+k_dissip*ball.vel[0],0.0,-k_dissip*ball.vel[2]]);
       let a = utils.MakeTranslateMatrix(0.0,0.0,-0.2);
