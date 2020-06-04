@@ -639,7 +639,7 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 		for (i=0; i<(v_ball.length-2); i=i+3){
 			var world_v = this.multiplyMatrixVector(ball.worldM, [v_ball[i], v_ball[i+1], v_ball[i+2], 1.0]);
 
-      if(world_v[2]/world_v[3] > ball.pos()[2]){
+      if(world_v[2]/world_v[3] > ball.pos()[2] && world_v[1]/world_v[3]==ball.pos()[1]){
 			     vert_list.push([world_v[0]/world_v[3], world_v[1]/world_v[3], world_v[2]/world_v[3]]);
       }
 		}

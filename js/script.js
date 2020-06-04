@@ -179,7 +179,7 @@ function main(){
       indexBuffer[i] = gl.createBuffer();
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer[i]);
       gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(objects[i].ind), gl.STATIC_DRAW);
-      console.log(objects[i]);
+      //console.log(objects[i]);
     }}
 
     drawScene();
