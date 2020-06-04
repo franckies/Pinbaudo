@@ -694,19 +694,20 @@ createProgram:function(gl, vertexShader, fragmentShader) {
                 alpha = Math.acos(scalar_prod);
 
                 alpha = (alpha*180/Math.PI == 45)? -alpha:alpha;
+                console.log(alpha*180/Math.PI);
                 v = this.normVec3(ball.vel);
 
                 if(obj[k].name == "paletteL"){
                   v_x = -v*Math.sin(alpha);
                   v_z = v*Math.cos(alpha);
                   //ball.set_vel([k_dissip*(-ball.vel[0]*Math.sin(alpha)+ball.vel[2]*Math.cos(alpha)),0.0,(ball.vel[0]*Math.sin(alpha)-ball.vel[2]*Math.cos(alpha))*k_dissip]);
-					ball.set_vel([k_dissip*v_x, 0.0,-k_dissip*v_z ]);
+					        ball.set_vel([k_dissip*v_x, 0.0,-k_dissip*v_z ]);
                 }
                 else{
                   v_x = v*Math.sin(alpha);
                   v_z = v*Math.cos(alpha);
                   //ball.set_vel([(-ball.vel[0]*Math.sin(alpha)-ball.vel[2]*Math.cos(alpha))*k_dissip,0.0,(ball.vel[0]*Math.sin(alpha)-ball.vel[2]*Math.cos(alpha))*k_dissip]);
-					ball.set_vel([k_dissip*v_x, 0.0,-k_dissip*v_z ]);
+					        ball.set_vel([k_dissip*v_x, 0.0,-k_dissip*v_z ]);
                 }
                 //Translate a little bit the ball to avoid going inside the palettes
                 var a = utils.MakeTranslateMatrix((-cur_v[0]+int_point[0]), 0, (-cur_v[2]+int_point[2]));
