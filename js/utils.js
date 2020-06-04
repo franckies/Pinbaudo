@@ -694,7 +694,6 @@ createProgram:function(gl, vertexShader, fragmentShader) {
                 alpha = Math.acos(scalar_prod);
 
                 alpha = (alpha*180/Math.PI == 45)? -alpha:alpha;
-                console.log(alpha*180/Math.PI);
                 v = this.normVec3(ball.vel);
 
                 if(obj[k].name == "paletteL"){
@@ -705,7 +704,6 @@ createProgram:function(gl, vertexShader, fragmentShader) {
                 }
                 else{
                   v_x = v*Math.sin(alpha);
-                  console.log(alpha*180/3.14);
                   v_z = v*Math.cos(alpha);
                   //ball.set_vel([(-ball.vel[0]*Math.sin(alpha)-ball.vel[2]*Math.cos(alpha))*k_dissip,0.0,(ball.vel[0]*Math.sin(alpha)-ball.vel[2]*Math.cos(alpha))*k_dissip]);
 					ball.set_vel([k_dissip*v_x, 0.0,-k_dissip*v_z ]);

@@ -99,7 +99,8 @@ function main(){
     var wallR = new Item("wallR", draw_par(1.0 ,1.0 ,20.0), [1.0, 0.65, 0.0]);
     var wallU = new Item("wallU", draw_par(13.0 ,1.0, 0.5), [1.0, 0.65, 0.0]);
     var wallD = new Item("wallD", draw_par(13.0 ,1.0 ,0.5), [1.0, 0.65, 0.0]);
-    objects.push(ball, table, paletteL, paletteR, wallL, wallR, wallU, wallD);
+    var cylR = new Item("cylR", draw_circle(2.3,1.0,2.3), [0.2, 0.2, 1.0]);
+    objects.push(ball, table, paletteL, paletteR, wallL, wallR, wallU, wallD, cylR);
   }
 
     {//Init object position and rotation
@@ -119,7 +120,9 @@ function main(){
     wallL.set_pos(utils.MakeWorld(-14.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
     wallR.set_pos(utils.MakeWorld(14.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
     wallU.set_pos(utils.MakeWorld(0.0, 1.5, -19.5, 0.0, 0.0, 0.0, 1.0));
-    wallD.set_pos(utils.MakeWorld(0.0, 1.5, 19.5, 0.0, 0.0, 0.0, 1.0));}
+    wallD.set_pos(utils.MakeWorld(0.0, 1.5, 19.5, 0.0, 0.0, 0.0, 1.0));
+    //cylinder
+    cylR.set_pos(utils.MakeWorld(-9.7, 0.0, 12.8, 0.0, 0.0, 0.0, 1.0));}
 
     //For animation
 
@@ -178,7 +181,7 @@ function main(){
       indexBuffer[i] = gl.createBuffer();
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer[i]);
       gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(objects[i].ind), gl.STATIC_DRAW);
-      // console.log(objects[i]);
+      console.log(objects[i]);
     }}
 
     drawScene();
@@ -276,6 +279,7 @@ function main(){
           gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(objects[i].worldM));
           gl.uniform3fv(materialDiffColorHandle, objects[i].col);
           gl.uniform1f(alphaLocation, 1.0);
+          
           //Set transparency for the Down WALL
           if(objects[i].name == "wallD"){ gl.uniform1f(alphaLocation, 0.1); }
 
