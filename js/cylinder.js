@@ -39,13 +39,7 @@
 		ind3[j++] = (i + 1) % 36 + 73;
 	}
 
-  function draw_cyl(x,y,z){
-  	var v = [];
-    vert4 = vert3.flat(1);
-  	for (i=0; i<vert4.length; i++){
-  		v[i*3 + 0] = vert4[i*3 + 0] * x;
-  		v[i*3 + 1] = vert4[i*3 + 1] * y;
-  		v[i*3 + 2] = vert4[i*3 + 2] * z;
-  	}
-  	return [v, norm3, ind3];
+  function draw_cyl(){
+
+  	return [vert3, norm3, ind3];
   }

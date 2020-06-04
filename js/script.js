@@ -20,6 +20,7 @@ var perspectiveMatrix, projectionMatrix, viewMatrix;
 //Light variables
 var directionalLight;
 var lightColorHandle;
+var lightDirMatrixPositionHandle;
 var lightDirectionHandle;
 var materialDiffColorHandle;
 
@@ -46,14 +47,17 @@ var vs = `#version 300 es
 
 in vec3 inPosition;
 in vec3 inNormal;
-out vec3 fsNormal;
+out vec4 finalColor;
 
+uniform vec3 mDiffColor;
 uniform mat4 nMatrix;
 uniform mat4 matrix;
+uniform vec3 lightColor;
+uniform vec3 lightDirection;
 
 void main() {
-  fsNormal = mat3(nMatrix) * inNormal;
-  //fsNormal = inNormal;
+  vec3 diffuse = mDiffColor * max(dot(normalize(inNormal), lightDirection), 0.0);
+  finalColor = vec4(clamp(diffuse * lightColor, 0.0, 1.0),1.0);
   gl_Position = matrix * vec4(inPosition, 1.0);
 }`;
 
@@ -61,45 +65,39 @@ var fs = `#version 300 es
 
 precision mediump float;
 
-in vec3 fsNormal;
+in vec4 finalColor;
 out vec4 outColor;
 
-uniform vec3 mDiffColor;
-uniform vec3 lightDirection;
-uniform vec3 lightColor;
 uniform float alpha;
 
 void main() {
-
-  vec3 nNormal = normalize(fsNormal);
-  vec3 lambertColor = mDiffColor * lightColor * dot(-lightDirection,nNormal);
-  outColor = vec4(clamp(lambertColor, 0.0, 1.0), alpha);
+  outColor = vec4(finalColor.rgb,alpha);
 }`;
 }
 
 function main(){
 
     {//Lights
-    var dirLightAlpha = -utils.degToRad(90);
+    var dirLightAlpha = -utils.degToRad(-90);
     var dirLightBeta  = -utils.degToRad(0);
 
     directionalLight = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
               Math.sin(dirLightAlpha),
               Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
               ];
-    directionalLightColor = [0.1, 1.0, 1.0];}
+    directionalLightColor = [1.0, 1.0, 1.0];}
 
     {//Object construction
     var objects = new Array();
     var ball = new dynBall("ball", draw_ball(), [0.2, 0.2, 1.0]);
-    var table = new Item("table", draw_par(15.0, 0.5, 20.0), [1.0, 0.65, 0.0]);
+    var table = new Item("table", draw_par(15.0, 0.5, 20.0), [0.47, 0.16, 0.16]);
     var paletteL = new dynPalette("paletteL", draw_par(3.0, 0.5, 1.0), [1.0, 1.0, 1.0]);
     var paletteR = new dynPalette("paletteR", draw_par(3.0, 0.5, 1.0), [1.0, 1.0, 1.0]);
-    var wallL = new Item("wallL", draw_par(1.0 ,1.0 ,20.0), [1.0, 0.65, 0.0]);
-    var wallR = new Item("wallR", draw_par(1.0 ,1.0 ,20.0), [1.0, 0.65, 0.0]);
-    var wallU = new Item("wallU", draw_par(13.0 ,1.0, 0.5), [1.0, 0.65, 0.0]);
-    var wallD = new Item("wallD", draw_par(13.0 ,1.0 ,0.5), [1.0, 0.65, 0.0]);
-    var cylR = new Item("cylR", draw_circle(2.3,1.0,2.3), [0.2, 0.2, 1.0]);
+    var wallL = new Item("wallL", draw_par(1.0 ,1.0 ,20.0), [0.0, 0.0, 0.0]);
+    var wallR = new Item("wallR", draw_par(1.0 ,1.0 ,20.0), [0.0, 0.0, 0.0]);
+    var wallU = new Item("wallU", draw_par(13.0 ,1.0, 0.5), [0.0, 0.0, 0.0]);
+    var wallD = new Item("wallD", draw_par(13.0 ,1.0 ,0.5), [0.0, 0.0, 0.0]);
+    var cylR = new Item("cylR", draw_par(2.3,1.0,2.3), [0.2, 0.2, 1.0]);
     objects.push(ball, table, paletteL, paletteR, wallL, wallR, wallU, wallD, cylR);
   }
 
@@ -243,11 +241,11 @@ function main(){
         paletteR.set_angle((p2UP)? (Math.min(paletteR.min_angle, paletteR.angle+deltaRot)):(Math.max(paletteR.max_angle, paletteR.angle-deltaRot)));
     }
 
-    paletteL.set_pos(utils.multiplyMatrices(utils.MakeWorld(-4.2, 1.2 , 16.5, 0.0, 0.0, 0.0, 1.0),
+    paletteL.set_pos(utils.multiplyMatrices(utils.MakeWorld(-4.2, 1.2,15.0, 0.0, 0.0, 0.0, 1.0),
     utils.multiplyMatrices(utils.MakeTranslateMatrix(-1.5,0.0,0.0),
         utils.multiplyMatrices(utils.MakeRotateYMatrix(-paletteL.angle), utils.MakeTranslateMatrix(1.5,0.0,0.0)))));
 
-    paletteR.set_pos(utils.multiplyMatrices(utils.MakeWorld(4.2, 1.2, 16.5, 0.0, 0.0, 0.0, 1.0),
+    paletteR.set_pos(utils.multiplyMatrices(utils.MakeWorld(4.2, 1.2,15.0, 0.0, 0.0, 0.0, 1.0),
     utils.multiplyMatrices(utils.MakeTranslateMatrix(1.5,0.0,0.0),
         utils.multiplyMatrices(utils.MakeRotateYMatrix(paletteR.angle), utils.MakeTranslateMatrix(-1.5,0.0,0.0)))));
     }
@@ -263,6 +261,8 @@ function main(){
 
         // Camera setting
         var viewMatrix = utils.MakeView(cx, cy, cz, -40.0, 0.0);
+        var lightDirMatrix = utils.invertMatrix(utils.transposeMatrix(viewMatrix));
+        var lightDirectionTransformed = utils.multiplyMatrix3Vector3(utils.sub3x3from4x4(lightDirMatrix),directionalLight);
 
         {//Object rendering
         for(i = 0; i < objects.length; i++)
@@ -279,7 +279,8 @@ function main(){
           gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(objects[i].worldM));
           gl.uniform3fv(materialDiffColorHandle, objects[i].col);
           gl.uniform1f(alphaLocation, 1.0);
-          
+          gl.uniformMatrix4fv(lightDirMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(lightDirMatrix));
+
           //Set transparency for the Down WALL
           if(objects[i].name == "wallD"){ gl.uniform1f(alphaLocation, 0.1); }
 
@@ -392,7 +393,7 @@ class dynPalette extends Item{
   }
 
   get_vel(deltaR, point){
-    var rot_center = (this.name == "paletteL")?([-5.7, 1.2, 16.5]):([5.7, 1.2, 16.5]);
+    var rot_center = (this.name == "paletteL")?([-5.7, 1.2, 15.0]):([5.7, 1.2, 15.0]);
     point = Math.sqrt((rot_center[0]-point[0])*(rot_center[0]-point[0]) + (rot_center[2]-point[2])*(rot_center[2]-point[2]));
     return (this.angle == this.max_angle || this.angle == this.min_angle)?
             ([0.0,0.0,0.0]):([(deltaR*point)*Math.cos(utils.degToRad(90-this.angle)), 0.0, (deltaR*point)*Math.sin(utils.degToRad(90-this.angle))]);
