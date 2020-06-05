@@ -29,7 +29,7 @@ var deltaRot = 0.0;
 var deltax_ball = 0.0;
 var deltay_ball = 0.0;
 var deltaz_ball = 0.0;
-
+var reloaderSpeed = 0.0;
 //Camera variables
 var cx = 0.0;
 var cy = 10.0;
@@ -38,10 +38,11 @@ var camx = null;
 var camy = null;
 
 //Control Panel variables
-var ballReset = false;
+var recentered = true;
 var ballCol = [0.5,0.5,0.5];
 var  k_dissip  = 0.8;
 var nFrame = 0;
+
 }
 
 {//Shader
@@ -101,7 +102,7 @@ function main(){
     var wallD = new Item("wallD", draw_par(13.0 ,1.0 ,0.5), [0.0,1.0,0.2]);
     var cylR = new Item("cylR", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
     var cylL = new Item("cylL", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
-    var reloader = new dynReloader("reloader", draw_par(3.0,0.5,0.5),[0.2, 0.2, 1.0] )
+    var reloader = new Item("reloader", draw_par(3.0,0.5,0.5),[1.0, 0.2, 0.0]);
     objects.push(ball, table, paletteL, paletteR, wallL, wallR, wallU, wallD, cylR, cylL,reloader);
   }
 
@@ -114,8 +115,8 @@ function main(){
     //Palettes
     paletteL.set_pos(utils.MakeWorld(-4.2, 1.2,15.0, 0.0, -45.0, 0.0, 1.0));
     paletteR.set_pos(utils.MakeWorld(4.2, 1.2,15.0, 0.0, -45.0, 0.0, 1.0));
-    paletteL.set_maxminangle(-45, 30);
-    paletteR.set_maxminangle(-45,30);
+    paletteL.set_maxminangle(-45, 10);
+    paletteR.set_maxminangle(-45, 10);
     paletteL.set_angle(paletteL.max_angle);
     paletteR.set_angle(paletteR.max_angle);
     //wall
@@ -128,7 +129,7 @@ function main(){
     cylR.set_pos(utils.MakeWorld(9.5, 1.2, 10.7, 0.0, -45.0, 0.0, 1.0));
     //reloader
     reloader.set_pos(utils.MakeWorld(12.5, 1.2, -18.0, 0.0, -45.0, 0.0, 1.0));
-    reloader.set_maxminpos([12.5,1.2,-18],[15.0,1.2,-20.5]);}
+  }
 
     //For animation
 
@@ -225,22 +226,22 @@ function main(){
     //Change ball color from slider
     ball.col = ballCol;
     //Gravity update and Collision Detection
-    if(lastUpdateTime){
+    if(lastUpdateTime && !recentered){
       ball.gravity_update(deltaT);
+
       collision.collisionDetection(ball,[paletteL, paletteR, cylL, cylR]);
       collision.checkBoundaries(ball, wallL, wallR, wallU, wallD);
 
       deltax_ball = (ball.vel[0]*deltaT) / 1000.0;
       deltay_ball = (ball.vel[1]*deltaT) / 1000.0;
       deltaz_ball = (ball.vel[2]*deltaT) / 1000.0;
-    }
-    ball.set_pos(utils.MakeWorld(ball.pos()[0]+deltax_ball, ball.pos()[1]+deltay_ball, ball.pos()[2]+deltaz_ball, 0.0, 0.0, 0.0, 1.0));
+      ball.set_pos(utils.MakeWorld(ball.pos()[0]+deltax_ball, ball.pos()[1]+deltay_ball, ball.pos()[2]+deltaz_ball, 0.0, 0.0, 0.0, 1.0));
+      }
 
     //Reset Ball position when R is pressed
-    if(lastUpdateTime && ballReset){
-      ball.set_pos(utils.MakeWorld(-3.0,1.5,0.0,0.0,0.0,0.0,1.0));
-      ball.set_vel([0.0,0.0,0.0]);
-      ballReset = false;
+    if(lastUpdateTime && recentered){
+      ball.set_pos(utils.MakeWorld(9.5,1.5,-14.7,0.0,0.0,0.0,1.0));
+      ball.set_vel([-reloaderSpeed,0.0,reloaderSpeed]);
     }
   }
 
@@ -260,21 +261,19 @@ function main(){
         utils.multiplyMatrices(utils.MakeRotateYMatrix(paletteR.angle), utils.MakeTranslateMatrix(-1.5,0.0,0.0)))));
     }
 
-    //Reloader animation
+    {//Reloader animation
     var deltaPos_In = (0.8 * deltaT) / 1000.0;
-    var deltaPos_Out = (2.0 * deltaT) / 1000.0;
     if(rUP){
-      deltaPos_In = (reloader.pos()[0] + deltaPos_In > reloader.min_pos[0])? 0.0:deltaPos_In;
+      deltaPos_In = (reloader.pos()[0] + deltaPos_In > 14.0)? 0.0:deltaPos_In;
       reloader.set_pos(utils.multiplyMatrices(
         utils.MakeWorld(reloader.pos()[0],reloader.pos()[1],reloader.pos()[2], 0.0, -45.0, 0.0, 1.0),
         utils.MakeTranslateMatrix(deltaPos_In,0.0,deltaPos_In)));
+      reloaderSpeed += 0.4;
     }
     if(!rUP){
-      reloader.set_pos(utils.multiplyMatrices(
-        utils.MakeWorld(12.5, 1.2, -18.0, 0.0, -45.0, 0.0, 1.0),
-        utils.MakeTranslateMatrix(-deltaPos_Out,0.0,-deltaPos_Out)));
-    }
-
+      reloader.set_pos(utils.MakeWorld(12.5, 1.2, -18.0, 0.0, -45.0, 0.0, 1.0));
+      reloaderSpeed = 0.0;
+    }}
 
     lastUpdateTime = currentTime;
 
@@ -326,16 +325,17 @@ var rUP = false;
 
 function reloaderUPMovement(e)
 {
-  if(e.keyCode == 32)
+  if(e.keyCode == 32) //space bar
   {
     rUP = true;
   }
 }
 function reloaderDOWNMovement(e)
 {
-  if(e.keyCode == 32)
+  if(e.keyCode == 32) //space bar
   {
     rUP = false;
+    recentered = false;
   }
 }
 
@@ -394,7 +394,7 @@ function moveCamera(e){
 function resetBall(e){
   if(e.keyCode == 82) //r
   {
-    ballReset = true;
+    recentered = true;
   }
 }}
 
@@ -447,12 +447,6 @@ class dynPalette extends Item{
 
 }
 
-class dynReloader extends Item {
-  set_maxminpos(maxpos,minpos){
-    this.max_pos = maxpos;
-    this.min_pos = minpos;
-  }
-}
 
 {//Functions calling
 window.onload = main;
