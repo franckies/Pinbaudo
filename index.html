@@ -6,17 +6,81 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Pinbaudo</title>
     <link type="text/css" href="./css/style.css" rel="stylesheet">
+    <script type="text/javascript" src="js/utils.js"></script>
+    <script type="text/javascript" src="js/collisions.js"></script>
+    <script type="text/javascript" src="js/ball.js"></script>
+    <script type="text/javascript" src="js/parallelepipeds.js"></script>
+    <script type="text/javascript" src="js/cylinder.js"></script>
+    <script type="text/javascript" src="js/circle.js"></script>
+    <script type="text/javascript" src="js/script.js"></script>
 </head>
 
 
 <body>
-  <canvas id="c"></canvas>
-  <script type="text/javascript" src="js/utils.js"></script>
-  <script type="text/javascript" src="js/ball.js"></script>
-  <script type="text/javascript" src="js/parallelepipeds.js"></script>
-  <script type="text/javascript" src="js/cylinder.js"></script>
-  <script type="text/javascript" src="js/circle.js"></script>
-  <script type="text/javascript" src="js/script.js"></script>
+  <center><canvas id="c"></canvas></center>
+
+<!--Command List!-->
+  <div id="legend">
+   <p>
+     <p><h2> Command List </h2></p>
+     <ul style="font-family: Courier New">
+       <li>Q: Move left palette</li>
+       <li>P: Move right palette</li>
+       <li>R: Recharge the ball</li>
+       <li>Arrows: Move the camera</li>
+     </ul>
+   </p>
+ </div>
+
+<div id="panel">
+ <td>
+ <p><h2> Control Panel </h2></p>
+ <b> Game speed</b>
+ <form>
+   <input type="radio" name="light" id="yesl" onchange="onRadioButtonChange(this.value);" value="1"> Slow <br/>
+   <input type="radio" name="light" onchange="onRadioButtonChange(this.value);" value="2" checked> Normal <br/>
+   <input type="radio" name="light" onchange="onRadioButtonChange(this.value);" value="3" > Fast <br/>
+ </form>
+ <br>
+ <b> Change ball color </b>
+ <div id="slider1">
+   <input id="slide1" type="range" min="0" max="1" step="0.1" value="0.5" onchange="onSliderChange(this.value);"/> 1 <br/>
+ </div>
+ <br>
+ <b> Enable Dark Mode </b><br>
+   <input type="checkbox" id="chbx" onclick="onCheckBoxChange(this.checked);"/> Dark Mode<br/>
+ </td>
+</div>
+
+<div id = "FPSpanel">
+  <h3>FPS</h3>
+  <p id= "FPS">  </p>
+</div>
 </body>
 
 </html>
+
+<script>
+function onRadioButtonChange(value){
+  if(value ==1){k_dissip = 0.5;}
+  if(value ==2){k_dissip = 0.8;}
+  if(value ==3){k_dissip = 1.0;}
+}
+function onCheckBoxChange(value){
+  if(value){
+    directionalLightColor = [0.5,0.5,0.5];}
+  if(!value){directionalLightColor = [1.0,1.0,1.0]}
+}
+function onSliderChange(value){
+  ballCol = [parseFloat(value),parseFloat(value),parseFloat(value)];
+}
+before = 0.0;
+requestAnimationFrame(
+  function loop(){
+      now=Date.now();
+      fps=Math.round(1000/(now-before));
+      before=now;
+      requestAnimationFrame(loop);
+      if(nFrame % 10 == 0){ document.getElementById("FPS").innerHTML = fps; }
+  })
+</script>
