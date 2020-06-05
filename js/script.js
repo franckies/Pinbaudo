@@ -37,8 +37,10 @@ var cz = 25.0;
 var camx = null;
 var camy = null;
 
+//Control Panel variables
 var ballReset = false;
-var  k_dissip  = 0.7;
+var ballCol = [0.5,0.5,0.5];
+var  k_dissip  = 0.8;
 var nFrame = 0;
 }
 
@@ -89,27 +91,28 @@ function main(){
 
     {//Object construction
     var objects = new Array();
-    var ball = new dynBall("ball", draw_ball(), [0.2, 0.2, 1.0]);
-    var table = new Item("table", draw_par(15.0, 0.5, 20.0), [0.47, 0.16, 0.16]);
-    var paletteL = new dynPalette("paletteL", draw_par(3.0, 0.5, 1.0), [1.0, 1.0, 1.0]);
-    var paletteR = new dynPalette("paletteR", draw_par(3.0, 0.5, 1.0), [1.0, 1.0, 1.0]);
-    var wallL = new Item("wallL", draw_par(1.0 ,1.0 ,20.0), [0.0, 0.0, 0.0]);
-    var wallR = new Item("wallR", draw_par(1.0 ,1.0 ,20.0), [0.0, 0.0, 0.0]);
-    var wallU = new Item("wallU", draw_par(13.0 ,1.0, 0.5), [0.0, 0.0, 0.0]);
-    var wallD = new Item("wallD", draw_par(13.0 ,1.0 ,0.5), [0.0, 0.0, 0.0]);
-    var cylR = new Item("cylR", draw_par(2.3,1.0,2.3), [0.2, 0.2, 1.0]);
-    objects.push(ball, table, paletteL, paletteR, wallL, wallR, wallU, wallD, cylR);
+    var ball = new dynBall("ball", draw_ball(), ballCol);
+    var table = new Item("table", draw_par(15.0, 0.5, 20.0), [0.0,1.0,0.2]);
+    var paletteL = new dynPalette("paletteL", draw_par(3.0, 0.5, 1.0), [0.2, 0.2, 1.0]);
+    var paletteR = new dynPalette("paletteR", draw_par(3.0, 0.5, 1.0), [0.2, 0.2, 1.0]);
+    var wallL = new Item("wallL", draw_par(1.0 ,1.0 ,20.0), [0.0,1.0,0.2]);
+    var wallR = new Item("wallR", draw_par(1.0 ,1.0 ,20.0), [0.0,1.0,0.2]);
+    var wallU = new Item("wallU", draw_par(13.0 ,1.0, 0.5), [0.0,1.0,0.2]);
+    var wallD = new Item("wallD", draw_par(13.0 ,1.0 ,0.5), [0.0,1.0,0.2]);
+    var cylR = new Item("cylL", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
+    var cylL = new Item("cylR", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
+    objects.push(ball, table, paletteL, paletteR, wallL, wallR, wallU, wallD, cylR, cylL);
   }
 
     {//Init object position and rotation
     // Sphere
-    ball.set_pos(utils.MakeWorld(4.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
+    ball.set_pos(utils.MakeWorld(7.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
     ball.set_vel([0.0, 0.0, 0.0]);
     // Table
     table.set_pos(utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0));
     //Palettes
-    paletteL.set_pos(utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0));
-    paletteR.set_pos(utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0));
+    paletteL.set_pos(utils.MakeWorld(-4.2, 1.2,15.0, 0.0, -45.0, 0.0, 1.0));
+    paletteR.set_pos(utils.MakeWorld(4.2, 1.2,15.0, 0.0, -45.0, 0.0, 1.0));
     paletteL.set_maxminangle(-45, 30);
     paletteR.set_maxminangle(-45,30);
     paletteL.set_angle(paletteL.max_angle);
@@ -120,7 +123,8 @@ function main(){
     wallU.set_pos(utils.MakeWorld(0.0, 1.5, -19.5, 0.0, 0.0, 0.0, 1.0));
     wallD.set_pos(utils.MakeWorld(0.0, 1.5, 19.5, 0.0, 0.0, 0.0, 1.0));
     //cylinder
-    cylR.set_pos(utils.MakeWorld(-9.7, 0.0, 12.8, 0.0, 0.0, 0.0, 1.0));}
+    cylR.set_pos(utils.MakeWorld(-9.5, 1.2, 10.7, 0.0, 45.0, 0.0, 1.0));
+    cylL.set_pos(utils.MakeWorld(9.5, 1.2, 10.7, 0.0, -45.0, 0.0, 1.0));}
 
     //For animation
 
@@ -133,7 +137,9 @@ function main(){
         document.write("GL context not opened");
         return;
     }
-    utils.resizeCanvasToDisplaySize(gl.canvas);
+    //utils.resizeCanvasToDisplaySize(gl.canvas);
+    canvas.width = 1240;
+    canvas.height = 700;
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(0.85, 0.85, 0.85, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -179,7 +185,6 @@ function main(){
       indexBuffer[i] = gl.createBuffer();
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer[i]);
       gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(objects[i].ind), gl.STATIC_DRAW);
-      //console.log(objects[i]);
     }}
 
     drawScene();
@@ -213,13 +218,14 @@ function main(){
     }}
 
     {//Ball Animation
-    //Gravity update
+    //Change ball color from slider
+    ball.col = ballCol;
+    //Gravity update and Collision Detection
     if(lastUpdateTime){
-      if(coll){
-          ball.gravity_update(deltaT);
-          utils.collisionDetection(ball,[paletteL, paletteR]);
-          utils.checkBoundaries(ball, wallL, wallR, wallU, wallD);
-      }
+      ball.gravity_update(deltaT);
+      collision.collisionDetection(ball,[paletteL, paletteR, cylL, cylR]);
+      collision.checkBoundaries(ball, wallL, wallR, wallU, wallD);
+
       deltax_ball = (ball.vel[0]*deltaT) / 1000.0;
       deltay_ball = (ball.vel[1]*deltaT) / 1000.0;
       deltaz_ball = (ball.vel[2]*deltaT) / 1000.0;
@@ -255,7 +261,6 @@ function main(){
 
     function drawScene() {
         animate();
-
         gl.clearColor(0.85, 0.85, 0.85, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -400,9 +405,6 @@ class dynPalette extends Item{
   }
 
 }
-
-var coll = true;
-
 
 {//Functions calling
 window.onload = main;
