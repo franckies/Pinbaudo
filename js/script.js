@@ -265,9 +265,7 @@ function main(){
     var deltaPos_In = (0.8 * deltaT) / 1000.0;
     if(rUP){
       deltaPos_In = (reloader.pos()[0] + deltaPos_In > 14.0)? 0.0:deltaPos_In;
-      reloader.set_pos(utils.multiplyMatrices(
-        utils.MakeWorld(reloader.pos()[0],reloader.pos()[1],reloader.pos()[2], 0.0, -45.0, 0.0, 1.0),
-        utils.MakeTranslateMatrix(deltaPos_In,0.0,deltaPos_In)));
+      reloader.set_pos(utils.multiplyMatrices(reloader.worldM, utils.MakeTranslateMatrix(deltaPos_In,0.0,0.0)));
       reloaderSpeed += 0.4;
     }
     if(!rUP){
