@@ -99,9 +99,10 @@ function main(){
     var wallR = new Item("wallR", draw_par(1.0 ,1.0 ,20.0), [0.0,1.0,0.2]);
     var wallU = new Item("wallU", draw_par(13.0 ,1.0, 0.5), [0.0,1.0,0.2]);
     var wallD = new Item("wallD", draw_par(13.0 ,1.0 ,0.5), [0.0,1.0,0.2]);
-    var cylR = new Item("cylL", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
-    var cylL = new Item("cylR", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
-    objects.push(ball, table, paletteL, paletteR, wallL, wallR, wallU, wallD, cylR, cylL);
+    var cylR = new Item("cylR", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
+    var cylL = new Item("cylL", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
+    var reloader = new dynReloader("reloader", draw_par(3.0,0.5,0.5),[0.2, 0.2, 1.0] )
+    objects.push(ball, table, paletteL, paletteR, wallL, wallR, wallU, wallD, cylR, cylL,reloader);
   }
 
     {//Init object position and rotation
@@ -123,8 +124,11 @@ function main(){
     wallU.set_pos(utils.MakeWorld(0.0, 1.5, -19.5, 0.0, 0.0, 0.0, 1.0));
     wallD.set_pos(utils.MakeWorld(0.0, 1.5, 19.5, 0.0, 0.0, 0.0, 1.0));
     //cylinder
-    cylR.set_pos(utils.MakeWorld(-9.5, 1.2, 10.7, 0.0, 45.0, 0.0, 1.0));
-    cylL.set_pos(utils.MakeWorld(9.5, 1.2, 10.7, 0.0, -45.0, 0.0, 1.0));}
+    cylL.set_pos(utils.MakeWorld(-9.5, 1.2, 10.7, 0.0, 45.0, 0.0, 1.0));
+    cylR.set_pos(utils.MakeWorld(9.5, 1.2, 10.7, 0.0, -45.0, 0.0, 1.0));
+    //reloader
+    reloader.set_pos(utils.MakeWorld(12.5, 1.2, -18.0, 0.0, -45.0, 0.0, 1.0));
+    reloader.set_maxminpos([12.5,1.2,-18],[15.0,1.2,-20.5]);}
 
     //For animation
 
@@ -256,7 +260,24 @@ function main(){
         utils.multiplyMatrices(utils.MakeRotateYMatrix(paletteR.angle), utils.MakeTranslateMatrix(-1.5,0.0,0.0)))));
     }
 
+    //Reloader animation
+    var deltaPos_In = (0.8 * deltaT) / 1000.0;
+    var deltaPos_Out = (2.0 * deltaT) / 1000.0;
+    if(rUP){
+      deltaPos_In = (reloader.pos()[0] + deltaPos_In > reloader.min_pos[0])? 0.0:deltaPos_In;
+      reloader.set_pos(utils.multiplyMatrices(
+        utils.MakeWorld(reloader.pos()[0],reloader.pos()[1],reloader.pos()[2], 0.0, -45.0, 0.0, 1.0),
+        utils.MakeTranslateMatrix(deltaPos_In,0.0,deltaPos_In)));
+    }
+    if(!rUP){
+      reloader.set_pos(utils.multiplyMatrices(
+        utils.MakeWorld(12.5, 1.2, -18.0, 0.0, -45.0, 0.0, 1.0),
+        utils.MakeTranslateMatrix(-deltaPos_Out,0.0,-deltaPos_Out)));
+    }
+
+
     lastUpdateTime = currentTime;
+
     }
 
     function drawScene() {
@@ -300,6 +321,25 @@ function main(){
         }
 }
 
+{//Reloader key press
+var rUP = false;
+
+function reloaderUPMovement(e)
+{
+  if(e.keyCode == 32)
+  {
+    rUP = true;
+  }
+}
+function reloaderDOWNMovement(e)
+{
+  if(e.keyCode == 32)
+  {
+    rUP = false;
+  }
+}
+
+}
 
 {//Palette key press
 var p1UP = false;
@@ -402,8 +442,16 @@ class dynPalette extends Item{
     point = Math.sqrt((rot_center[0]-point[0])*(rot_center[0]-point[0]) + (rot_center[2]-point[2])*(rot_center[2]-point[2]));
     return (this.angle == this.max_angle || this.angle == this.min_angle)?
             ([0.0,0.0,0.0]):([(deltaR*point)*Math.cos(utils.degToRad(90-this.angle)), 0.0, (deltaR*point)*Math.sin(utils.degToRad(90-this.angle))]);
+
   }
 
+}
+
+class dynReloader extends Item {
+  set_maxminpos(maxpos,minpos){
+    this.max_pos = maxpos;
+    this.min_pos = minpos;
+  }
 }
 
 {//Functions calling
@@ -412,4 +460,7 @@ window.addEventListener("keydown", paletteUPMovement, false);
 window.addEventListener("keyup", paletteDOWNMovement, false);
 window.addEventListener("keydown", moveCamera, false);
 window.addEventListener("keydown", resetBall, false);
+window.addEventListener("keydown", reloaderUPMovement, false);
+window.addEventListener("keyup", reloaderDOWNMovement, false);
+
 }

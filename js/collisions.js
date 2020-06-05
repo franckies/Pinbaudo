@@ -160,16 +160,6 @@ var velocityUpdate = {
 
   palettesWallVelUpdate:function(ball, obj){
     if(obj.name == "cylL" || obj.name == "cylR"){
-      if(obj.name == "cylL"){
-          norm_vel = utils.normalizeVec3([-ball.vel[0],-ball.vel[1],-ball.vel[2]]);
-          norm_plane = [Math.cos(utils.degToRad(45)), 0.0, -Math.sin(utils.degToRad(45))];
-          scalar_prod = norm_vel[0]*norm_plane[0] + norm_vel[1]*norm_plane[1] + norm_vel[2]*norm_plane[2];
-          alpha = Math.acos(scalar_prod);
-          v = utils.normVec3(ball.vel);
-          v_x = v*Math.sin(alpha);
-          v_z = v*Math.cos(alpha);
-          ball.set_vel([k_dissip*v_x, 0.0,-k_dissip*v_z ]);
-        }
       if(obj.name == "cylR"){
           norm_vel = utils.normalizeVec3([-ball.vel[0],-ball.vel[1],-ball.vel[2]]);
           norm_plane = [-Math.cos(utils.degToRad(45+90)), 0.0, -Math.sin(utils.degToRad(45+90))];
@@ -179,6 +169,18 @@ var velocityUpdate = {
           v_x = v*Math.sin(alpha);
           v_z = v*Math.cos(alpha);
           ball.set_vel([-k_dissip*v_x, 0.0,-k_dissip*v_z ]);
+
+        }
+      if(obj.name == "cylL"){
+          norm_vel = utils.normalizeVec3([-ball.vel[0],-ball.vel[1],-ball.vel[2]]);
+          norm_plane = [Math.cos(utils.degToRad(45)), 0.0, -Math.sin(utils.degToRad(45))];
+
+          scalar_prod = norm_vel[0]*norm_plane[0] + norm_vel[1]*norm_plane[1] + norm_vel[2]*norm_plane[2];
+          alpha = Math.acos(scalar_prod);
+          v = utils.normVec3(ball.vel);
+          v_x = v*Math.sin(alpha);
+          v_z = v*Math.cos(alpha);
+          ball.set_vel([k_dissip*v_x, 0.0,-k_dissip*v_z ]);  
         }
       }
     }
