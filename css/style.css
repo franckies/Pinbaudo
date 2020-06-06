@@ -22,7 +22,7 @@ h2{
   border-color: blue;
   opacity: 0.7;
   padding: 5px 10px 5px 10px;
-  overflow:auto"
+  overflow:auto;
 }
 #panel{
   text-align:center;
@@ -37,7 +37,7 @@ h2{
   border-color: blue;
   opacity: 0.7;
   padding: 5px 10px 5px 10px;
-  overflow:auto"
+  overflow:auto;
 }
 #FPSpanel{
   text-align:center;
@@ -52,5 +52,24 @@ h2{
   border-color: blue;
   opacity: 0.7;
   padding: 5px 10px 5px 10px;
-  overflow:auto"
+  overflow:auto;
+}
+#Lost{
+  text-align:center;
+  position:absolute;
+  z-index: 1;
+  width:100%;
+  height:100%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%);
+  background-color: white;
+  padding: auto;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  overflow:auto;
+  font-size: 300%;
+  color: red;
+  background-color: RGBA(255,255,255,0.7);
 }

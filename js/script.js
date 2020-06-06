@@ -80,6 +80,8 @@ void main() {
 
 function main(){
 
+  document.getElementById("Lost").style.visibility = "hidden";
+
     {//Lights
     var dirLightAlpha = -utils.degToRad(-90);
     var dirLightBeta  = -utils.degToRad(0);
@@ -325,6 +327,7 @@ function reloaderUPMovement(e)
 {
   if(e.keyCode == 32) //space bar
   {
+    document.getElementById("Lost").style.visibility = "hidden";
     rUP = true;
   }
 }
@@ -332,6 +335,7 @@ function reloaderDOWNMovement(e)
 {
   if(e.keyCode == 32) //space bar
   {
+
     rUP = false;
     recentered = false;
   }
