@@ -73,6 +73,10 @@ var collision = {
     let c_wR = wallR.pos();
     let c_wU = wallU.pos();
     let c_wD = wallD.pos();
+    if(c_ball[0] > -1 && c_ball[0] < 1 && c_ball[2] + ball_radius > 18.5){
+      document.getElementById("Lost").style.visibility = "visible";
+      recentered = true;
+    }
     if(c_ball[0] - ball_radius < c_wL[0] + 1.0){
       ball.set_vel([-k_dissip*ball.vel[0],0.0,k_dissip*ball.vel[2]]);
       //Reposition ball to avoid it going in walls
@@ -180,7 +184,7 @@ var velocityUpdate = {
           v = utils.normVec3(ball.vel);
           v_x = v*Math.sin(alpha);
           v_z = v*Math.cos(alpha);
-          ball.set_vel([k_dissip*v_x, 0.0,-k_dissip*v_z ]);  
+          ball.set_vel([k_dissip*v_x, 0.0,-k_dissip*v_z ]);
         }
       }
     }
