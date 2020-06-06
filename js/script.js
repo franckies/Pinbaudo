@@ -41,6 +41,10 @@ var lookRadius = 30.0;
 //Control Panel variables
 var recentered = true;
 var ballCol = [0.5,0.5,0.5];
+var cylCol1 = [1.0,0.0,0.0];
+var cylCol2 = [1.0,0.0,0.0];
+var cylCol3 = [1.0,0.0,0.0];
+
 var  k_dissip  = 0.8;
 var nFrame = 0;
 
@@ -96,6 +100,9 @@ function main(){
     {//Object construction
     var objects = new Array();
     var ball = new dynBall("ball", draw_ball(), ballCol);
+    var cylinder1 = new Item("cyl1", draw_cyl(), cylCol1);
+    var cylinder2 = new Item("cyl2", draw_cyl(), cylCol2);
+    var cylinder3 = new Item("cyl3", draw_cyl(), cylCol3);
     var table = new Item("table", draw_par(15.0, 0.5, 20.0), [0.0,1.0,0.2]);
     var paletteL = new dynPalette("paletteL", draw_par(3.0, 0.5, 1.0), [0.2, 0.2, 1.0]);
     var paletteR = new dynPalette("paletteR", draw_par(3.0, 0.5, 1.0), [0.2, 0.2, 1.0]);
@@ -106,20 +113,24 @@ function main(){
     var cylR = new Item("cylR", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
     var cylL = new Item("cylL", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
     var reloader = new Item("reloader", draw_par(3.0,0.5,0.5),[1.0, 0.2, 0.0]);
-    objects.push(ball, table, paletteL, paletteR, wallL, wallR, wallU, wallD, cylR, cylL,reloader);
+    objects.push(ball, cylinder1, cylinder2, cylinder3, table, paletteL, paletteR, wallL, wallR, wallU, wallD, cylR, cylL,reloader);
   }
 
     {//Init object position and rotation
     // Sphere
     ball.set_pos(utils.MakeWorld(7.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
     ball.set_vel([0.0, 0.0, 0.0]);
+    //Cylinders
+    cylinder1.set_pos(utils.MakeWorld(5.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
+    cylinder2.set_pos(utils.MakeWorld(0.0, 1.5, -5.0, 0.0, 0.0, 0.0, 1.0));
+    cylinder3.set_pos(utils.MakeWorld(-5.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
     // Table
     table.set_pos(utils.MakeWorld(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0));
     //Palettes
     paletteL.set_pos(utils.MakeWorld(-4.2, 1.2,15.0, 0.0, -45.0, 0.0, 1.0));
     paletteR.set_pos(utils.MakeWorld(4.2, 1.2,15.0, 0.0, -45.0, 0.0, 1.0));
-    paletteL.set_maxminangle(-45, 10);
-    paletteR.set_maxminangle(-45, 10);
+    paletteL.set_maxminangle(-45, 30);
+    paletteR.set_maxminangle(-45, 30);
     paletteL.set_angle(paletteL.max_angle);
     paletteR.set_angle(paletteR.max_angle);
     //wall
@@ -215,7 +226,19 @@ function main(){
       ball.gravity_update(deltaT);
 
       collision.collisionDetection(ball,[paletteL, paletteR, cylL, cylR]);
+      collision.collisionCylinders(ball,cylinder1);
+      cylinder1.col = cylCol1;
+      collision.collisionCylinders(ball,cylinder2);
+      cylinder2.col = cylCol2;
+      collision.collisionCylinders(ball,cylinder3);
+      cylinder3.col = cylCol3;
       collision.checkBoundaries(ball, wallL, wallR, wallU, wallD);
+      if(nFrame%60 == 0){
+        cylCol1 = [1.0,0.0,0.0];
+        cylCol2 = [1.0,0.0,0.0];
+        cylCol3 = [1.0,0.0,0.0];
+      }
+
 
       deltax_ball = (ball.vel[0]*deltaT) / 1000.0;
       deltay_ball = (ball.vel[1]*deltaT) / 1000.0;
