@@ -73,9 +73,16 @@ var collision = {
     let c_wR = wallR.pos();
     let c_wU = wallU.pos();
     let c_wD = wallD.pos();
+    //Check game lost
     if(c_ball[0] > -1 && c_ball[0] < 1 && c_ball[2] + ball_radius > 18.5){
       document.getElementById("Lost").style.visibility = "visible";
       recentered = true;
+      cx = 0.0;
+      cy = 10.0;
+      cz = 25.0;
+      elevation = -25.0;
+      angle = 0.0;
+      lookRadius = 30.0;
     }
     if(c_ball[0] - ball_radius < c_wL[0] + 1.0){
       ball.set_vel([-k_dissip*ball.vel[0],0.0,k_dissip*ball.vel[2]]);

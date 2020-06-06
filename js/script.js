@@ -34,8 +34,9 @@ var reloaderSpeed = 0.0;
 var cx = 0.0;
 var cy = 10.0;
 var cz = 25.0;
-var camx = null;
-var camy = null;
+var elevation = -25.0;
+var angle = 0.0;
+var lookRadius = 30.0;
 
 //Control Panel variables
 var recentered = true;
@@ -134,7 +135,6 @@ function main(){
   }
 
     //For animation
-
     lastUpdateTime = (new Date).getTime();
 
     {//Canvas
@@ -144,6 +144,11 @@ function main(){
         document.write("GL context not opened");
         return;
     }
+    canvas.addEventListener("mousedown", doMouseDown, false);
+    canvas.addEventListener("mouseup", doMouseUp, false);
+    canvas.addEventListener("mousemove", doMouseMove, false);
+    canvas.addEventListener("mousewheel", doMouseWheel, false);
+    canvas.addEventListener("dblclick", resetCam, false);
     //utils.resizeCanvasToDisplaySize(gl.canvas);
     canvas.width = 1240;
     canvas.height = 700;
@@ -201,28 +206,6 @@ function main(){
     nFrame++;
     currentTime = (new Date).getTime();
     let deltaT = currentTime - lastUpdateTime;
-
-    {//Camera movement
-    if (lastUpdateTime){
-        if (camx !== null) {
-            if (camx) {
-                cx += 15 * deltaT / 1000.0;
-            } else {
-                cx -= 15 * deltaT / 1000.0
-            }
-        }
-
-        if (camy !== null) {
-            if (camy) {
-                cy += 10.0 * deltaT / 1000.0;
-            } else if (!camy) {
-                cy -= 10.0 * deltaT / 1000.0;
-            }
-        }
-
-        camx = null;
-        camy = null;
-    }}
 
     {//Ball Animation
     //Change ball color from slider
@@ -285,7 +268,10 @@ function main(){
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         // Camera setting
-        var viewMatrix = utils.MakeView(cx, cy, cz, -40.0, 0.0);
+        cz = lookRadius * Math.cos(utils.degToRad(-angle)) * Math.cos(utils.degToRad(-elevation));
+    		cx = lookRadius * Math.sin(utils.degToRad(-angle)) * Math.cos(utils.degToRad(-elevation));
+    		cy = lookRadius * Math.sin(utils.degToRad(-elevation));
+        var viewMatrix = utils.MakeView(cx, cy, cz, elevation, -angle);
         var lightDirMatrix = utils.invertMatrix(utils.transposeMatrix(viewMatrix));
         var lightDirectionTransformed = utils.multiplyMatrix3Vector3(utils.sub3x3from4x4(lightDirMatrix),directionalLight);
 
@@ -373,24 +359,51 @@ function paletteDOWNMovement(e)
 }}
 
 {//Camera key press
-function moveCamera(e){
-  if(e.keyCode == 38) //arrow up
-  {
-    camy = true;
+  var mouseState = false;
+  var lastMouseX = -100, lastMouseY = -100;
+  function doMouseDown(e) {
+    if(e.button == 0){
+      lastMouseX = e.pageX;
+    	lastMouseY = e.pageY;
+    	mouseState = true;
+    }
   }
-  if(e.keyCode == 40) //arrow down
-  {
-    camy = false
+  function doMouseUp(e) {
+    if(e.button == 0){
+  	lastMouseX = -100;
+  	lastMouseY = -100;
+  	mouseState = false;
+    }
   }
-  if(e.keyCode == 39) //arrow left
-  {
-    camx = true;
+  function doMouseMove(e) {
+  	if(mouseState) {
+  		var dx = e.pageX - lastMouseX;
+  		var dy = lastMouseY - e.pageY;
+  		lastMouseX = e.pageX;
+  		lastMouseY = e.pageY;
+
+  		if((dx != 0) || (dy != 0)) {
+  			angle = angle + 0.5 * dx;
+  			elevation = elevation + 0.5 * dy;
+  		}
+  	}
   }
-  if(e.keyCode == 37) //arrow right
-  {
-    camx = false;
+  function doMouseWheel(e) {
+  	var nLookRadius = lookRadius + e.wheelDelta/1000.0;
+  	if((nLookRadius > 2.0) && (nLookRadius < 20.0)) {
+  		lookRadius = nLookRadius;
+  	}
   }
-}}
+  function resetCam(e){
+    recentered = true;
+    cx = 0.0;
+    cy = 10.0;
+    cz = 25.0;
+    elevation = -25.0;
+    angle = 0.0;
+    lookRadius = 30.0;
+  }
+}
 
 {//Ball recenter key press
 function resetBall(e){
@@ -454,9 +467,7 @@ class dynPalette extends Item{
 window.onload = main;
 window.addEventListener("keydown", paletteUPMovement, false);
 window.addEventListener("keyup", paletteDOWNMovement, false);
-window.addEventListener("keydown", moveCamera, false);
 window.addEventListener("keydown", resetBall, false);
 window.addEventListener("keydown", reloaderUPMovement, false);
 window.addEventListener("keyup", reloaderDOWNMovement, false);
-
 }
