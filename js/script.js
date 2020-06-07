@@ -85,7 +85,7 @@ void main() {
 
 function main(){
 
-  document.getElementById("Lost").style.visibility = "hidden";
+    document.getElementById("Lost").style.visibility = "hidden";
 
     {//Lights
     var dirLightAlpha = -utils.degToRad(-90);
@@ -254,7 +254,7 @@ function main(){
   }
 
     {//Palette Animation
-    deltaRot = (350 * deltaT) / 1000.0;
+    deltaRot = (700 * deltaT) / 1000.0;
     if(lastUpdateTime){
         paletteL.set_angle((p1UP)? (Math.min(paletteL.min_angle, paletteL.angle+deltaRot)):(Math.max(paletteL.max_angle, paletteL.angle-deltaRot)));
         paletteR.set_angle((p2UP)? (Math.min(paletteR.min_angle, paletteR.angle+deltaRot)):(Math.max(paletteR.max_angle, paletteR.angle-deltaRot)));
@@ -290,13 +290,13 @@ function main(){
         gl.clearColor(0.85, 0.85, 0.85, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        // Camera setting
+        {// Camera setting
         cz = lookRadius * Math.cos(utils.degToRad(-angle)) * Math.cos(utils.degToRad(-elevation));
     		cx = lookRadius * Math.sin(utils.degToRad(-angle)) * Math.cos(utils.degToRad(-elevation));
     		cy = lookRadius * Math.sin(utils.degToRad(-elevation));
         var viewMatrix = utils.MakeView(cx, cy, cz, elevation, -angle);
         var lightDirMatrix = utils.invertMatrix(utils.transposeMatrix(viewMatrix));
-        var lightDirectionTransformed = utils.multiplyMatrix3Vector3(utils.sub3x3from4x4(lightDirMatrix),directionalLight);
+        var lightDirectionTransformed = utils.multiplyMatrix3Vector3(utils.sub3x3from4x4(lightDirMatrix),directionalLight);}
 
         {//Object rendering
         for(i = 0; i < objects.length; i++)

@@ -105,7 +105,7 @@ var collision = {
       let q = 0;
       let min = k[0];
       for(i=0;i<4;i++){
-        for(j=1;j<4;j++){
+        for(j=0;j<4;j++){
           min = Math.min(min,k[j]);
           }
         }
@@ -117,22 +117,18 @@ var collision = {
       if(q==0){
         let a = utils.MakeTranslateMatrix(0.2,0.0,0.0);
         ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
-        console.log(a);
       }
       else if(q==1){
         let a = utils.MakeTranslateMatrix(-0.2,0.0,0.0);
         ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
-        console.log(a);
       }
       else if(q==2){
         let a = utils.MakeTranslateMatrix(0.0,0.0,0.2);
         ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
-        console.log(a);
       }
       else if(q==3){
         let a = utils.MakeTranslateMatrix(0.0,0.0,-0.2);
         ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
-        console.log(a);
       }
 
       if(cylinder.name == "cyl1"){
