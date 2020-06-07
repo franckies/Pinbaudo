@@ -418,7 +418,6 @@ function paletteDOWNMovement(e)
   	}
   }
   function resetCam(e){
-    recentered = true;
     cx = 0.0;
     cy = 10.0;
     cz = 25.0;
