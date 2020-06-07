@@ -2,6 +2,7 @@
 var canvas;
 var gl = null;
 var program = null;
+var baseDir;
 
 //Arrays needed for objects instantiation
 var object_matrix = new Array();
@@ -9,6 +10,7 @@ var vao = new Array();
 var positionBuffer = new Array();
 var normalBuffer = new Array();
 var indexBuffer = new Array();
+var uvBuffer = new Array();
 
 //Time for animation
 var lastUpdateTime, currentTime;
@@ -55,7 +57,9 @@ var vs = `#version 300 es
 
 in vec3 inPosition;
 in vec3 inNormal;
+in vec2 a_uv;
 out vec4 finalColor;
+out vec2 uvFS;
 
 uniform vec3 mDiffColor;
 uniform mat4 nMatrix;
@@ -64,6 +68,7 @@ uniform vec3 lightColor;
 uniform vec3 lightDirection;
 
 void main() {
+  uvFS = a_uv;
   vec3 diffuse = mDiffColor * max(dot(normalize(inNormal), lightDirection), 0.0);
   finalColor = vec4(clamp(diffuse * lightColor, 0.0, 1.0),1.0);
   gl_Position = matrix * vec4(inPosition, 1.0);
@@ -74,12 +79,15 @@ var fs = `#version 300 es
 precision mediump float;
 
 in vec4 finalColor;
+in vec2 uvFS;
 out vec4 outColor;
 
 uniform float alpha;
+uniform sampler2D u_texture;
 
 void main() {
-  outColor = vec4(finalColor.rgb,alpha);
+  vec4 color = vec4(finalColor.rgb,alpha);
+  outColor = texture(u_texture, uvFS) * color;
 }`;
 }
 
@@ -113,7 +121,9 @@ function main(){
     var cylR = new Item("cylR", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
     var cylL = new Item("cylL", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
     var reloader = new Item("reloader", draw_par(3.0,0.5,0.5),[1.0, 0.2, 0.0]);
-    objects.push(ball, cylinder1, cylinder2, cylinder3, table, paletteL, paletteR, wallL, wallR, wallU, wallD, cylR, cylL,reloader);
+
+    //objects.push(ball, cylinder1, cylinder2, cylinder3, table, paletteL, paletteR, wallL, wallR, wallU, wallD, cylR, cylL,reloader);
+    objects.push(table,paletteL,paletteR,wallL,wallR,wallU,wallD);
   }
 
     {//Init object position and rotation
@@ -180,13 +190,23 @@ function main(){
 
     var positionAttributeLocation = gl.getAttribLocation(program, "inPosition");
     var normalAttributeLocation = gl.getAttribLocation(program, "inNormal");
+    var uvAttributeLocation = gl.getAttribLocation(program, "a_uv");
     matrixLocation = gl.getUniformLocation(program, "matrix");
     materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');
     lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
     lightColorHandle = gl.getUniformLocation(program, 'lightColor');
     perspectiveMatrix = utils.MakePerspective(90, gl.canvas.width/gl.canvas.height, 0.1, 100.0);
+    var textLocation = gl.getUniformLocation(program, "u_texture");
     var normalMatrixPositionHandle = gl.getUniformLocation(program, 'nMatrix');
     alphaLocation = gl.getUniformLocation(program, 'alpha');}
+
+
+
+    var whiteColor = new Float32Array([1, 1, 1]);
+    var whiteTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, whiteTexture);
+    var whitePixel = new Uint8Array([255, 255, 255, 255]);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, whitePixel);
 
     {//Passing objects to shader
     for(i = 0; i < objects.length; i++)
@@ -208,7 +228,33 @@ function main(){
       indexBuffer[i] = gl.createBuffer();
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer[i]);
       gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(objects[i].ind), gl.STATIC_DRAW);
+
+      uvBuffer[i] = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer[i]);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(objects[i].uv), gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(uvAttributeLocation);
+      gl.vertexAttribPointer(uvAttributeLocation, 2, gl.FLOAT, false, 0, 0);
     }}
+
+
+    // Create a texture.
+    var texture = gl.createTexture();
+    // use texture unit 0
+    gl.activeTexture(gl.TEXTURE0);
+
+    var image = new Image();
+    image.src = "./textures/crate.png";
+    image.onload = function() {
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+      gl.generateMipmap(gl.TEXTURE_2D);
+    };
+    //image.crossOrigin = "";
 
     drawScene();
 
@@ -311,7 +357,7 @@ function main(){
           //var normalMatrix = utils.transposeMatrix(utils.invertMatrix(utils.transposeMatrix(objects[i].worldM)));
 
           gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(objects[i].worldM));
-          gl.uniform3fv(materialDiffColorHandle, objects[i].col);
+          //gl.uniform3fv(materialDiffColorHandle, objects[i].col);
           gl.uniform1f(alphaLocation, 1.0);
           gl.uniformMatrix4fv(lightDirMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(lightDirMatrix));
 
@@ -322,6 +368,13 @@ function main(){
           gl.uniform3fv(lightDirectionHandle,  directionalLight);
 
           gl.bindVertexArray(vao[i]);
+          if (objects[i].name == "table"){
+              gl.uniform3fv(materialDiffColorHandle, whiteColor);
+              gl.bindTexture(gl.TEXTURE_2D, texture);
+          } else {
+              gl.uniform3fv(materialDiffColorHandle, objects[i].col);
+              gl.bindTexture(gl.TEXTURE_2D, whiteTexture);
+          }
           gl.drawElements(gl.TRIANGLES, (objects[i].ind).length, gl.UNSIGNED_SHORT, 0 );
         }}
 
@@ -437,12 +490,13 @@ function resetBall(e){
 
 //Objects class
 class Item {
-    constructor(name, [vertices,normals,indices], color){
+    constructor(name, [vertices,normals,indices,uv], color){
         this.name = name;
         this.vert = vertices;
         this.norm = normals;
         this.ind = indices;
         this.col = color;
+        this.uv = uv;
     }
 
     set_pos(worldMatrix){
