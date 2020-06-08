@@ -1,4 +1,4 @@
-// Draws a Cylinder --- Already done, just for inspiration
+	// Draws a Cylinder --- Already done, just for inspiration
 ///// Creates vertices
 function draw_cyl(){
 var vert3 = [[0.0, 1.0, 0.0]];
@@ -40,6 +40,22 @@ for(i = 0; i < 36; i++) {
 	ind3[j++] = i + 73;
 	ind3[j++] = (i + 1) % 36 + 73;
 }
+
+var uv = [];
+k = 0
+for (i = 0; i < 146; i++){
+	let x = vert3[i][0];
+	let y = vert3[i][1];
+	let z = vert3[i][2];
+	let theta = Math.atan2(x,z);
+	let rawU = theta/(2*Math.PI);
+	let u = 1 - (rawU + 0.5);
+	let v = y % 1;
+	uv[k++] = u;
+	uv[k++] = v;
+}
+
 var color3 = [1.0, 0.0, 1.0];
-return [vert3.flat(1), norm3.flat(1), ind3.flat(1), color3];
+
+return [vert3.flat(1), norm3.flat(1), ind3.flat(1), uv, color3];
 }
