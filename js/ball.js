@@ -4,6 +4,7 @@ function draw_ball(){
 	  var norm5 = [[0.0, 1.0,0.0]];
 	///// Creates vertices
 	k = 1;
+	t = 0;
 	for(j = 1; j < 18; j++) {
 		for(i = 0; i < 36; i++) {
 			x = Math.sin(i*10.0/180.0*Math.PI) * Math.sin(j*10.0/180.0*Math.PI);
@@ -16,6 +17,18 @@ function draw_ball(){
 	lastVert = k;
 	norm5[k] = [0.0,-1.0,0.0];
 	vert5[k++] = [0.0,-1.0,0.0];
+
+	k=0;
+	var uv = [];
+	for(i=0; i<=lastVert; i++){
+		x = vert5[i][0];
+		y = vert5[i][1];
+		z = vert5[i][2];
+		u = 0.5 + Math.atan2(x,z)/(2*Math.PI);
+		v = 0.5 - Math.asin(y)/Math.PI;
+		uv[k++] = u;
+		uv[k++] = v;
+	}
 
 	////// Creates indices
 	var ind5 = [];
@@ -49,5 +62,5 @@ function draw_ball(){
 
 	// addMesh(vert5, norm5, ind5, color5);
 
-    return [vert5.flat(1), norm5.flat(1), ind5.flat(1), color5];
+    return [vert5.flat(1), norm5.flat(1), ind5.flat(1), uv];
 }

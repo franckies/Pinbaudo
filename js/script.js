@@ -122,8 +122,8 @@ function main(){
     var cylL = new Item("cylL", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
     var reloader = new Item("reloader", draw_par(3.0,0.5,0.5),[1.0, 0.2, 0.0]);
 
-    //objects.push(ball, cylinder1, cylinder2, cylinder3, table, paletteL, paletteR, wallL, wallR, wallU, wallD, cylR, cylL,reloader);
-    objects.push(table,paletteL,paletteR,wallL,wallR,wallU,wallD);
+    objects.push(ball, cylinder1, cylinder2, cylinder3, table, paletteL, paletteR, wallL, wallR, wallU, wallD, cylR, cylL,reloader);
+    //objects.push(ball,table,paletteL,paletteR,wallL,wallR,wallU,wallD,reloader);
   }
 
     {//Init object position and rotation
@@ -368,7 +368,7 @@ function main(){
           gl.uniform3fv(lightDirectionHandle,  directionalLight);
 
           gl.bindVertexArray(vao[i]);
-          if (objects[i].name == "table"){
+          if (objects[i].name == "table" || objects[i].name == "ball" || objects[i].name == "cyl1"){
               gl.uniform3fv(materialDiffColorHandle, whiteColor);
               gl.bindTexture(gl.TEXTURE_2D, texture);
           } else {

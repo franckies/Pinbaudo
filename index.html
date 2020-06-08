@@ -47,7 +47,8 @@
  <br>
  <b> Change ball color </b>
  <div id="slider1">
-   <input id="slide1" type="range" min="0" max="1" step="0.1" value="0.5" onchange="onSliderChange(this.value);"/> 1 <br/>
+   <input type="color" id="favcolor" name="favcolor" value="#646262" onChange = "onColorChange(this.value)">
+   <br>
  </div>
  <br>
  <b> Enable Dark Mode </b><br>
@@ -68,6 +69,37 @@
 </html>
 
 <script>
+function HEX2RGB(hex) {
+        "use strict";
+        if (hex.charAt(0) === '#') {
+            hex = hex.substr(1);
+        }
+        if ((hex.length < 2) || (hex.length > 6)) {
+            return false;
+        }
+        var values = hex.split(''),
+            r,
+            g,
+            b;
+
+        if (hex.length === 2) {
+            r = parseInt(values[0].toString() + values[1].toString(), 16);
+            g = r;
+            b = r;
+        } else if (hex.length === 3) {
+            r = parseInt(values[0].toString() + values[0].toString(), 16);
+            g = parseInt(values[1].toString() + values[1].toString(), 16);
+            b = parseInt(values[2].toString() + values[2].toString(), 16);
+        } else if (hex.length === 6) {
+            r = parseInt(values[0].toString() + values[1].toString(), 16);
+            g = parseInt(values[2].toString() + values[3].toString(), 16);
+            b = parseInt(values[4].toString() + values[5].toString(), 16);
+        } else {
+            return false;
+        }
+        return [r, g, b];
+    }
+
 function onRadioButtonChange(value){
   if(value ==1){k_dissip = 0.5;}
   if(value ==2){k_dissip = 0.8;}
@@ -78,8 +110,12 @@ function onCheckBoxChange(value){
     directionalLightColor = [0.5,0.5,0.5];}
   if(!value){directionalLightColor = [1.0,1.0,1.0]}
 }
-function onSliderChange(value){
-  ballCol = [parseFloat(value),parseFloat(value),parseFloat(value)];
+function onColorChange(value){
+  let result = HEX2RGB(value);
+  var r = result[0]/255.0;
+  var g = result[1]/255.0;
+  var b = result[2]/255.0;
+  ballCol = [r,g,b];
 }
 before = 0.0;
 requestAnimationFrame(
