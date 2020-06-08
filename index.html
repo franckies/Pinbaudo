@@ -53,6 +53,9 @@
  <br>
  <b> Enable Dark Mode </b><br>
    <input type="checkbox" id="chbx" onclick="onCheckBoxChange(this.checked);"/> Dark Mode<br/>
+  <br>
+  <b> Enable Textures </b><br>
+   <input type="checkbox" id="chbx" onclick="onTexturesChecked(this.checked);" checked/> Textures<br/>
  </td>
 </div>
 
@@ -62,6 +65,9 @@
 </div>
 <div id = "Lost">
   <h1> Game Lost </h1>
+</div>
+<div id = "Loading">
+  <h1> Loading... </h1>
 </div>
 
 </body>
@@ -106,9 +112,12 @@ function onRadioButtonChange(value){
   if(value ==3){k_dissip = 1.0;}
 }
 function onCheckBoxChange(value){
-  if(value){
-    directionalLightColor = [0.5,0.5,0.5];}
+  if(value){directionalLightColor = [0.5,0.5,0.5];}
   if(!value){directionalLightColor = [1.0,1.0,1.0]}
+}
+function onTexturesChecked(value){
+  if(value){texturesEnabled = true;}
+  if(!value){texturesEnabled = false;}
 }
 function onColorChange(value){
   let result = HEX2RGB(value);
@@ -126,4 +135,14 @@ requestAnimationFrame(
       requestAnimationFrame(loop);
       if(nFrame % 10 == 0){ document.getElementById("FPS").innerHTML = fps; }
   })
+function pageLoader(){
+  if(pageReady){
+    document.getElementById("Loading").style.visibility = "hidden";
+    document.getElementById("c").style.visibility = "visible";
+    document.getElementById("panel").style.visibility = "visible";
+    document.getElementById("legend").style.visibility = "visible";
+    document.getElementById("FPSpanel").style.visibility = "visible";
+  }
+
+}
 </script>

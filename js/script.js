@@ -12,6 +12,12 @@ var normalBuffer = new Array();
 var indexBuffer = new Array();
 var uvBuffer = new Array();
 
+//Textures handling
+var textures = [];
+var texturesEnabled = true;
+var images = [];
+var pageReady = false;
+
 //Time for animation
 var lastUpdateTime, currentTime;
 
@@ -94,10 +100,14 @@ void main() {
 function main(){
 
     document.getElementById("Lost").style.visibility = "hidden";
+    document.getElementById("c").style.visibility = "hidden";
+    document.getElementById("panel").style.visibility = "hidden";
+    document.getElementById("legend").style.visibility = "hidden";
+    document.getElementById("FPSpanel").style.visibility = "hidden";
 
     {//Lights
     var dirLightAlpha = -utils.degToRad(-90);
-    var dirLightBeta  = -utils.degToRad(0);
+    var dirLightBeta  = -utils.degToRad(-0);
 
     directionalLight = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
               Math.sin(dirLightAlpha),
@@ -201,13 +211,6 @@ function main(){
     alphaLocation = gl.getUniformLocation(program, 'alpha');}
 
 
-
-    var whiteColor = new Float32Array([1, 1, 1]);
-    var whiteTexture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, whiteTexture);
-    var whitePixel = new Uint8Array([255, 255, 255, 255]);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, whitePixel);
-
     {//Passing objects to shader
     for(i = 0; i < objects.length; i++)
     {
@@ -236,25 +239,35 @@ function main(){
       gl.vertexAttribPointer(uvAttributeLocation, 2, gl.FLOAT, false, 0, 0);
     }}
 
+    {//Textures
+    var whiteColor = new Float32Array([1, 1, 1]);
+    var whiteTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, whiteTexture);
+    var whitePixel = new Uint8Array([255, 255, 255, 255]);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, whitePixel);
 
-    // Create a texture.
-    var texture = gl.createTexture();
-    // use texture unit 0
-    gl.activeTexture(gl.TEXTURE0);
+    for(i = 0; i< 14; i++){
+      var image = new Image();
+      image.src = "./textures/" + objects[i].name + ".png";
+      images.push(image);
+    }
 
-    var image = new Image();
-    image.src = "./textures/crate.png";
-    image.onload = function() {
-      gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-
-      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-
-      gl.generateMipmap(gl.TEXTURE_2D);
-    };
-    //image.crossOrigin = "";
+    setTimeout(function(){
+      for(i = 0; i<objects.length; i++){
+        var texture = gl.createTexture();
+        gl.activeTexture(gl.TEXTURE0 + i);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[i]);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        textures.push(texture);
+        pageReady = true;
+        pageLoader();
+      }
+    }, 1000);
+    }
 
     drawScene();
 
@@ -368,13 +381,19 @@ function main(){
           gl.uniform3fv(lightDirectionHandle,  directionalLight);
 
           gl.bindVertexArray(vao[i]);
-          if (objects[i].name == "table" || objects[i].name == "ball" || objects[i].name == "cyl1"){
-              gl.uniform3fv(materialDiffColorHandle, whiteColor);
-              gl.bindTexture(gl.TEXTURE_2D, texture);
-          } else {
-              gl.uniform3fv(materialDiffColorHandle, objects[i].col);
-              gl.bindTexture(gl.TEXTURE_2D, whiteTexture);
+
+          if(texturesEnabled){
+            gl.uniform3fv(materialDiffColorHandle, whiteColor);
+            gl.uniform1i(textLocation, i);
+            gl.bindTexture(gl.TEXTURE_2D, textures[i]);
+            document.getElementById("favcolor").disabled = true;
           }
+          else{
+            gl.uniform3fv(materialDiffColorHandle, objects[i].col);
+            gl.bindTexture(gl.TEXTURE_2D, whiteTexture);
+            document.getElementById("favcolor").disabled = false;
+          }
+
           gl.drawElements(gl.TRIANGLES, (objects[i].ind).length, gl.UNSIGNED_SHORT, 0 );
         }}
 
