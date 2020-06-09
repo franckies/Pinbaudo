@@ -72,11 +72,19 @@ uniform mat4 nMatrix;
 uniform mat4 matrix;
 uniform vec3 lightColor;
 uniform vec3 lightDirection;
+uniform vec3 specularColor;
+uniform float SpecShine;
 
 void main() {
   uvFS = a_uv;
+  //diffuse
   vec3 diffuse = mDiffColor * max(dot(normalize(inNormal), lightDirection), 0.0);
-  finalColor = vec4(clamp(diffuse * lightColor, 0.0, 1.0),1.0);
+  // specular
+  //in camera space eyePos = [0,0,0] so eyeDir = normalize(-in_pos)
+	vec3 eyeDir = normalize( - in_pos);
+	vec3 halfVec = normalize(eyeDir + lightDirection);
+	vec3 specular = specularColor * pow(max(dot(halfVec, inNormal),0.0),SpecShine);
+  finalColor = vec4(clamp((diffuse+specular) * lightColor, 0.0, 1.0),1.0);
   gl_Position = matrix * vec4(inPosition, 1.0);
 }`;
 
@@ -208,6 +216,8 @@ function main(){
     perspectiveMatrix = utils.MakePerspective(90, gl.canvas.width/gl.canvas.height, 0.1, 100.0);
     var textLocation = gl.getUniformLocation(program, "u_texture");
     var normalMatrixPositionHandle = gl.getUniformLocation(program, 'nMatrix');
+    var specularColorHandle = gl.getUniformLocation(program,'specularColor');
+    var specShineHandle = gl.getUniformLocation(program,'SpecShine');
     alphaLocation = gl.getUniformLocation(program, 'alpha');}
 
 
@@ -373,6 +383,9 @@ function main(){
           //gl.uniform3fv(materialDiffColorHandle, objects[i].col);
           gl.uniform1f(alphaLocation, 1.0);
           gl.uniformMatrix4fv(lightDirMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(lightDirMatrix));
+
+          gl.uniform3fv(specularColorHandle, gl.FALSE, [1.0,1.0,1.0]);
+          gl.uniform1f(specShineHandle, 1.0);
 
           //Set transparency for the Down WALL
           if(objects[i].name == "wallD"){ gl.uniform1f(alphaLocation, 0.1); }
