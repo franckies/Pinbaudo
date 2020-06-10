@@ -81,8 +81,13 @@ void main() {
   //diffuse
   vec3 diffuse = mDiffColor * max(dot(normalize(inNormal), lightDirection), 0.0);
   // specular
+<<<<<<< HEAD
+  //in camera space eyePos = [0,0,0] so eyeDir = normalize(-in_pos)
+	vec3 eyeDir = normalize( - in_pos);
+=======
   //in camera space eyePos = [0,0,0] so eyeDir = normalize(-inPosition)
 	vec3 eyeDir = normalize( - inPosition);
+>>>>>>> 052b62faab7952c7339e6e63d87bfd370dffd8d6
 	vec3 halfVec = normalize(eyeDir + lightDirection);
 	vec3 specular = specularColor * pow(max(dot(halfVec, inNormal),0.0),SpecShine);
   finalColor = vec4(clamp((diffuse+specular) * lightColor, 0.0, 1.0),1.0);
@@ -391,8 +396,13 @@ async function main(){
           gl.uniform1f(alphaLocation, 1.0);
           gl.uniformMatrix4fv(lightDirMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(lightDirMatrix));
 
+<<<<<<< HEAD
+          gl.uniform3fv(specularColorHandle, gl.FALSE, [1.0,1.0,1.0]);
+          gl.uniform1f(specShineHandle, 1.0);
+=======
           gl.uniform3fv(specularColorHandle,  [1.0,1.0,1.0]);
           gl.uniform1f(specShineHandle, 8.0);
+>>>>>>> 052b62faab7952c7339e6e63d87bfd370dffd8d6
 
           //Set transparency for the Down WALL
           if(objects[i].name == "wallD" || objects[i].name == "wallS" ){ gl.uniform1f(alphaLocation, 0.1); }
