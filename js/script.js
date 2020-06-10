@@ -143,8 +143,8 @@ async function main(){
     var paletteR = new dynPalette("paletteR", draw_par(3.0, 0.5, 1.0), [0.2, 0.2, 1.0]);
     var wallL = new Item("wallL", draw_par(1.0 ,1.0 ,20.0), [0.0,1.0,0.2]);
     var wallR = new Item("wallR", draw_par(1.0 ,1.0 ,20.0), [0.0,1.0,0.2]);
-    var wallU = new Item("wallU", draw_par(13.0 ,5.0, 0.5), [0.0,1.0,0.2]);
-    var wallS = new Item("wallS", draw_par(13.0 ,5.0, 0.5), [0.0,1.0,0.2]);
+    var wallU = new Item("wallU", draw_par(13.0 ,5.5, 0.5), [0.0,1.0,0.2]);
+    var wallS = new Item("wallS", draw_par(13.0 ,5.5, 0.5), [0.0,1.0,0.2]);
     var wallD = new Item("wallD", draw_par(13.0 ,1.0 ,0.5), [0.0,1.0,0.2]);
     var palWallR = new Item("palWallR", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
     var palWallL = new Item("palWallL", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
