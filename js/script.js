@@ -106,13 +106,16 @@ void main() {
 }`;
 }
 
-function main(){
+async function main(){
 
     document.getElementById("Lost").style.visibility = "hidden";
     document.getElementById("c").style.visibility = "hidden";
     document.getElementById("panel").style.visibility = "hidden";
     document.getElementById("legend").style.visibility = "hidden";
     document.getElementById("FPSpanel").style.visibility = "hidden";
+
+    var bumpObjStr =await utils.get_objstr("./models/bumper.obj");
+    var bumpModel = new OBJ.Mesh(bumpObjStr);
 
     {//Lights
     var dirLightAlpha = -utils.degToRad(-90);
@@ -127,9 +130,9 @@ function main(){
     {//Object construction
     var objects = new Array();
     var ball = new dynBall("ball", draw_ball(), ballCol);
-    var cylinder1 = new Item("cyl1", draw_cyl(), cylCol1);
-    var cylinder2 = new Item("cyl2", draw_cyl(), cylCol2);
-    var cylinder3 = new Item("cyl3", draw_cyl(), cylCol3);
+    var cylinder1 = new Item("cyl1", [draw_bumper(bumpModel.vertices), bumpModel.vertexNormals, bumpModel.indices, bumpModel.textures], [1.0,0.0,0.0]);
+    var cylinder2 = new Item("cyl2", [draw_bumper(bumpModel.vertices), bumpModel.vertexNormals, bumpModel.indices, bumpModel.textures], [1.0,0.0,0.0]);
+    var cylinder3 = new Item("cyl3", [draw_bumper(bumpModel.vertices), bumpModel.vertexNormals, bumpModel.indices, bumpModel.textures], [1.0,0.0,0.0]);
     var table = new Item("table", draw_par(15.0, 0.5, 20.0), [0.0,1.0,0.2]);
     var paletteL = new dynPalette("paletteL", draw_par(3.0, 0.5, 1.0), [0.2, 0.2, 1.0]);
     var paletteR = new dynPalette("paletteR", draw_par(3.0, 0.5, 1.0), [0.2, 0.2, 1.0]);
@@ -142,7 +145,6 @@ function main(){
     var reloader = new Item("reloader", draw_par(3.0,0.5,0.5),[1.0, 0.2, 0.0]);
 
     objects.push(ball, cylinder1, cylinder2, cylinder3, table, paletteL, paletteR, wallL, wallR, wallU, wallD, palWallR, palWallL,reloader);
-    //objects.push(ball,table,paletteL,paletteR,wallL,wallR,wallU,wallD,reloader);
   }
 
     {//Init object position and rotation
@@ -167,7 +169,7 @@ function main(){
     wallR.set_pos(utils.MakeWorld(14.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
     wallU.set_pos(utils.MakeWorld(0.0, 1.5, -19.5, 0.0, 0.0, 0.0, 1.0));
     wallD.set_pos(utils.MakeWorld(0.0, 1.5, 19.5, 0.0, 0.0, 0.0, 1.0));
-    //cylinder
+    //Palettes Walls
     palWallL.set_pos(utils.MakeWorld(-9.5, 1.2, 10.7, 0.0, 45.0, 0.0, 1.0));
     palWallR.set_pos(utils.MakeWorld(9.5, 1.2, 10.7, 0.0, -45.0, 0.0, 1.0));
     //reloader
@@ -257,7 +259,7 @@ function main(){
     var whitePixel = new Uint8Array([255, 255, 255, 255]);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, whitePixel);
 
-    for(i = 0; i< 14; i++){
+    for(i = 0; i< objects.length; i++){
       var image = new Image();
       image.src = "./textures/" + objects[i].name + ".png";
       images.push(image);
