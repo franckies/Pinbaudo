@@ -143,13 +143,14 @@ async function main(){
     var paletteR = new dynPalette("paletteR", draw_par(3.0, 0.5, 1.0), [0.2, 0.2, 1.0]);
     var wallL = new Item("wallL", draw_par(1.0 ,1.0 ,20.0), [0.0,1.0,0.2]);
     var wallR = new Item("wallR", draw_par(1.0 ,1.0 ,20.0), [0.0,1.0,0.2]);
-    var wallU = new Item("wallU", draw_par(13.0 ,1.0, 0.5), [0.0,1.0,0.2]);
+    var wallU = new Item("wallU", draw_par(13.0 ,5.0, 0.5), [0.0,1.0,0.2]);
+    var wallS = new Item("wallS", draw_par(13.0 ,5.0, 0.5), [0.0,1.0,0.2]);
     var wallD = new Item("wallD", draw_par(13.0 ,1.0 ,0.5), [0.0,1.0,0.2]);
     var palWallR = new Item("palWallR", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
     var palWallL = new Item("palWallL", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
     var reloader = new Item("reloader", draw_par(3.0,0.5,0.5),[1.0, 0.2, 0.0]);
 
-    objects.push(ball, cylinder1, cylinder2, cylinder3, table, paletteL, paletteR, wallL, wallR, wallU, wallD, palWallR, palWallL,reloader);
+    objects.push(ball, cylinder1, cylinder2, cylinder3, table, paletteL, paletteR, wallL, wallR, wallU, wallS, wallD, palWallR, palWallL,reloader);
   }
 
     {//Init object position and rotation
@@ -172,7 +173,8 @@ async function main(){
     //wall
     wallL.set_pos(utils.MakeWorld(-14.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
     wallR.set_pos(utils.MakeWorld(14.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
-    wallU.set_pos(utils.MakeWorld(0.0, 1.5, -19.5, 0.0, 0.0, 0.0, 1.0));
+    wallU.set_pos(utils.MakeWorld(0.0, 4.5, -19.5, 0.0, 0.0, 0.0, 1.0));
+    wallS.set_pos(utils.MakeWorld(0.0, 4.5, -19.5, 0.0, 0.0, 0.0, 1.0));
     wallD.set_pos(utils.MakeWorld(0.0, 1.5, 19.5, 0.0, 0.0, 0.0, 1.0));
     //Palettes Walls
     palWallL.set_pos(utils.MakeWorld(-9.5, 1.2, 10.7, 0.0, 45.0, 0.0, 1.0));
@@ -403,7 +405,7 @@ async function main(){
 >>>>>>> 052b62faab7952c7339e6e63d87bfd370dffd8d6
 
           //Set transparency for the Down WALL
-          if(objects[i].name == "wallD"){ gl.uniform1f(alphaLocation, 0.1); }
+          if(objects[i].name == "wallD" || objects[i].name == "wallS" ){ gl.uniform1f(alphaLocation, 0.1); }
 
           gl.uniform3fv(lightColorHandle,  directionalLightColor);
           gl.uniform3fv(lightDirectionHandle,  directionalLight);
