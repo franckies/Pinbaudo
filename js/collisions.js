@@ -76,6 +76,7 @@ var collision = {
             velocityUpdate.palettesWallVelUpdate(ball,obj[k], int_point);
             var a = utils.MakeTranslateMatrix((-cur_v[0]+int_point[0]), 0, (-cur_v[2]+int_point[2]));
             ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+            coll=false;
             return null;
           }
         }
@@ -87,60 +88,62 @@ var collision = {
     let c_ball = ball.pos();
     let ball_radius = 1.0;
     let cyl_radius = 1.0;
-    let cyl = cylinder.pos();
-    //cylinder's 4 vertices
-    let ver = [];
-    ver[0] = [cylinder.pos()[0]+1.0,cylinder.pos()[1],cylinder.pos()[2]];
-    ver[1] = [cylinder.pos()[0]-1.0,cylinder.pos()[1],cylinder.pos()[2]];
-    ver[2] = [cylinder.pos()[0],cylinder.pos()[1],cylinder.pos()[2]+1.0];
-    ver[3] = [cylinder.pos()[0],cylinder.pos()[1],cylinder.pos()[2]-1.0];
 
-    let k =[];
-    //Check collisions
-    if(utils.EuclideanDistance(c_ball, cyl) <= ball_radius+cyl_radius){
-      ball.set_vel([-ball.vel[0],0.0,-ball.vel[2]]);
-      for(i=0;i<4;i++){
-        k[i]= utils.EuclideanDistance(ver[i],c_ball);
-      }
-      let q = 0;
-      let min = k[0];
-      for(i=0;i<4;i++){
-        for(j=0;j<4;j++){
-          min = Math.min(min,k[j]);
+    for(n=0;n<cylinder.length;n++){
+      //cylinder's 4 vertices
+      let ver = [];
+      ver[0] = [cylinder[n].pos()[0]+1.0,cylinder[n].pos()[1],cylinder[n].pos()[2]];
+      ver[1] = [cylinder[n].pos()[0]-1.0,cylinder[n].pos()[1],cylinder[n].pos()[2]];
+      ver[2] = [cylinder[n].pos()[0],cylinder[n].pos()[1],cylinder[n].pos()[2]+1.0];
+      ver[3] = [cylinder[n].pos()[0],cylinder[n].pos()[1],cylinder[n].pos()[2]-1.0];
+
+      let k =[];
+      //Check collisions
+      if(utils.EuclideanDistance(c_ball, cylinder[n].pos()) <= ball_radius+cyl_radius){
+        ball.set_vel([-ball.vel[0],0.0,-ball.vel[2]]);
+        for(i=0;i<4;i++){
+          k[i]= utils.EuclideanDistance(ver[i],c_ball);
+        }
+        let q = 0;
+        let min = k[0];
+        for(i=0;i<4;i++){
+          for(j=0;j<4;j++){
+            min = Math.min(min,k[j]);
+            }
+          }
+        for(i=0;i<4;i++){
+          if(k[i]==min){
+            q=i;
           }
         }
-      for(i=0;i<4;i++){
-        if(k[i]==min){
-          q=i;
+        if(q==0){
+          let a = utils.MakeTranslateMatrix(0.2,0.0,0.0);
+          ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+        }
+        else if(q==1){
+          let a = utils.MakeTranslateMatrix(-0.2,0.0,0.0);
+          ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+        }
+        else if(q==2){
+          let a = utils.MakeTranslateMatrix(0.0,0.0,0.2);
+          ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+        }
+        else if(q==3){
+          let a = utils.MakeTranslateMatrix(0.0,0.0,-0.2);
+          ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+        }
+        if(cylinder[n].name == "cyl1"){
+          cylCol1 = [0.9,1.0,0.1];
+        }
+        if(cylinder[n].name == "cyl2"){
+          cylCol2 = [0.9,1.0,0.1];
+        }
+        if(cylinder[n].name == "cyl3"){
+          cylCol3 = [0.9,1.0,0.1];
         }
       }
-      if(q==0){
-        let a = utils.MakeTranslateMatrix(0.2,0.0,0.0);
-        ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
-      }
-      else if(q==1){
-        let a = utils.MakeTranslateMatrix(-0.2,0.0,0.0);
-        ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
-      }
-      else if(q==2){
-        let a = utils.MakeTranslateMatrix(0.0,0.0,0.2);
-        ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
-      }
-      else if(q==3){
-        let a = utils.MakeTranslateMatrix(0.0,0.0,-0.2);
-        ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
-      }
-
-      if(cylinder.name == "cyl1"){
-        cylCol1 = [0.9,1.0,0.1];
-      }
-      if(cylinder.name == "cyl2"){
-        cylCol2 = [0.9,1.0,0.1];
-      }
-      if(cylinder.name == "cyl3"){
-        cylCol3 = [0.9,1.0,0.1];
-      }
     }
+
   },
 
   checkBoundaries:function(ball, wallL, wallR, wallU, wallD){
@@ -151,7 +154,7 @@ var collision = {
     let c_wU = wallU.pos();
     let c_wD = wallD.pos();
     //Check game lost
-    if(c_ball[0] > -1 && c_ball[0] < 1 && c_ball[2] + ball_radius > 18.5){
+    if(c_ball[0] > -4 && c_ball[0] < 4 && c_ball[2] + ball_radius > 18.5){
       document.getElementById("Lost").style.visibility = "visible";
       recentered = true;
       cx = 0.0;
@@ -247,8 +250,8 @@ var velocityUpdate = {
   },
 
   palettesWallVelUpdate:function(ball, obj){
-    if(obj.name == "cylL" || obj.name == "cylR"){
-      if(obj.name == "cylR"){
+    if(obj.name == "palWallL" || obj.name == "palWallR"){
+      if(obj.name == "palWallR"){
           norm_vel = utils.normalizeVec3([-ball.vel[0],-ball.vel[1],-ball.vel[2]]);
           norm_plane = [-Math.cos(utils.degToRad(45+90)), 0.0, -Math.sin(utils.degToRad(45+90))];
           scalar_prod = norm_vel[0]*norm_plane[0] + norm_vel[1]*norm_plane[1] + norm_vel[2]*norm_plane[2];
@@ -259,7 +262,7 @@ var velocityUpdate = {
           ball.set_vel([-k_dissip*v_x, 0.0,-k_dissip*v_z ]);
 
         }
-      if(obj.name == "cylL"){
+      if(obj.name == "palWallL"){
           norm_vel = utils.normalizeVec3([-ball.vel[0],-ball.vel[1],-ball.vel[2]]);
           norm_plane = [Math.cos(utils.degToRad(45)), 0.0, -Math.sin(utils.degToRad(45))];
 

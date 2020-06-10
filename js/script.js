@@ -56,6 +56,7 @@ var cylCol3 = [1.0,0.0,0.0];
 var  k_dissip  = 0.8;
 var nFrame = 0;
 
+var coll = true;
 }
 
 {//Shader
@@ -80,8 +81,13 @@ void main() {
   //diffuse
   vec3 diffuse = mDiffColor * max(dot(normalize(inNormal), lightDirection), 0.0);
   // specular
+<<<<<<< HEAD
   //in camera space eyePos = [0,0,0] so eyeDir = normalize(-in_pos)
 	vec3 eyeDir = normalize( - in_pos);
+=======
+  //in camera space eyePos = [0,0,0] so eyeDir = normalize(-inPosition)
+	vec3 eyeDir = normalize( - inPosition);
+>>>>>>> 052b62faab7952c7339e6e63d87bfd370dffd8d6
 	vec3 halfVec = normalize(eyeDir + lightDirection);
 	vec3 specular = specularColor * pow(max(dot(halfVec, inNormal),0.0),SpecShine);
   finalColor = vec4(clamp((diffuse+specular) * lightColor, 0.0, 1.0),1.0);
@@ -136,11 +142,11 @@ function main(){
     var wallR = new Item("wallR", draw_par(1.0 ,1.0 ,20.0), [0.0,1.0,0.2]);
     var wallU = new Item("wallU", draw_par(13.0 ,1.0, 0.5), [0.0,1.0,0.2]);
     var wallD = new Item("wallD", draw_par(13.0 ,1.0 ,0.5), [0.0,1.0,0.2]);
-    var cylR = new Item("cylR", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
-    var cylL = new Item("cylL", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
+    var palWallR = new Item("palWallR", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
+    var palWallL = new Item("palWallL", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
     var reloader = new Item("reloader", draw_par(3.0,0.5,0.5),[1.0, 0.2, 0.0]);
 
-    objects.push(ball, cylinder1, cylinder2, cylinder3, table, paletteL, paletteR, wallL, wallR, wallU, wallD, cylR, cylL,reloader);
+    objects.push(ball, cylinder1, cylinder2, cylinder3, table, paletteL, paletteR, wallL, wallR, wallU, wallD, palWallR, palWallL,reloader);
     //objects.push(ball,table,paletteL,paletteR,wallL,wallR,wallU,wallD,reloader);
   }
 
@@ -167,8 +173,8 @@ function main(){
     wallU.set_pos(utils.MakeWorld(0.0, 1.5, -19.5, 0.0, 0.0, 0.0, 1.0));
     wallD.set_pos(utils.MakeWorld(0.0, 1.5, 19.5, 0.0, 0.0, 0.0, 1.0));
     //cylinder
-    cylL.set_pos(utils.MakeWorld(-9.5, 1.2, 10.7, 0.0, 45.0, 0.0, 1.0));
-    cylR.set_pos(utils.MakeWorld(9.5, 1.2, 10.7, 0.0, -45.0, 0.0, 1.0));
+    palWallL.set_pos(utils.MakeWorld(-9.5, 1.2, 10.7, 0.0, 45.0, 0.0, 1.0));
+    palWallR.set_pos(utils.MakeWorld(9.5, 1.2, 10.7, 0.0, -45.0, 0.0, 1.0));
     //reloader
     reloader.set_pos(utils.MakeWorld(12.5, 1.2, -18.0, 0.0, -45.0, 0.0, 1.0));
   }
@@ -293,20 +299,22 @@ function main(){
     //Gravity update and Collision Detection
     if(lastUpdateTime && !recentered){
       ball.gravity_update(deltaT);
-
-      collision.collisionDetection(ball,[paletteL, paletteR, cylL, cylR]);
-      collision.collisionCylinders(ball,cylinder1);
+      //Palettes and wall Palettes collisions (suspende detection for 1,5sec after first detection)
+      if(coll){collision.collisionDetection(ball,[paletteL, paletteR, palWallL, palWallR]);}
+      setTimeout(function(){coll=true;}, 1500);
+      //Cylinder collisions with color change
+      collision.collisionCylinders(ball,[cylinder1,cylinder2,cylinder3]);
       cylinder1.col = cylCol1;
-      collision.collisionCylinders(ball,cylinder2);
       cylinder2.col = cylCol2;
-      collision.collisionCylinders(ball,cylinder3);
       cylinder3.col = cylCol3;
-      collision.checkBoundaries(ball, wallL, wallR, wallU, wallD);
       if(nFrame%60 == 0){
         cylCol1 = [1.0,0.0,0.0];
         cylCol2 = [1.0,0.0,0.0];
         cylCol3 = [1.0,0.0,0.0];
       }
+      //Wall collisions
+      collision.checkBoundaries(ball, wallL, wallR, wallU, wallD);
+
 
 
       deltax_ball = (ball.vel[0]*deltaT) / 1000.0;
@@ -384,8 +392,13 @@ function main(){
           gl.uniform1f(alphaLocation, 1.0);
           gl.uniformMatrix4fv(lightDirMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(lightDirMatrix));
 
+<<<<<<< HEAD
           gl.uniform3fv(specularColorHandle, gl.FALSE, [1.0,1.0,1.0]);
           gl.uniform1f(specShineHandle, 1.0);
+=======
+          gl.uniform3fv(specularColorHandle,  [1.0,1.0,1.0]);
+          gl.uniform1f(specShineHandle, 8.0);
+>>>>>>> 052b62faab7952c7339e6e63d87bfd370dffd8d6
 
           //Set transparency for the Down WALL
           if(objects[i].name == "wallD"){ gl.uniform1f(alphaLocation, 0.1); }
