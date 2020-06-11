@@ -12,6 +12,12 @@ var normalBuffer = new Array();
 var indexBuffer = new Array();
 var uvBuffer = new Array();
 
+//Score handling
+var textpositionbuffer;
+var textuvbuffer;
+var textvao;
+var scorenum = 0;
+
 //Textures handling
 var textures = [];
 var texturesEnabled = true;
@@ -271,6 +277,9 @@ async function main(){
       image.src = texturespath[i];
       images.push(image);
     }
+    var text = new Image();
+    text.src = "./textures/wallS.png";
+    images.push(text);
 
     setTimeout(function(){
       for(i = 0; i<images.length; i++){
@@ -283,8 +292,8 @@ async function main(){
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.generateMipmap(gl.TEXTURE_2D);
         textures.push(texture);
-        pageReady = true;
       }
+      pageReady = true;
       pageLoader();
     }, 1000);
     }
@@ -400,7 +409,7 @@ async function main(){
           gl.uniform1f(specShineHandle, 8.0);
 
           //Set transparency for the Down WALL
-          if(objects[i].name == "wallD" || objects[i].name == "wallS" ){ gl.uniform1f(alphaLocation, 0.1); }
+          if(objects[i].name == "wallD" ){ gl.uniform1f(alphaLocation, 0.1); }
 
           gl.uniform3fv(lightColorHandle,  directionalLightColor);
           gl.uniform3fv(lightDirectionHandle,  directionalLight);
@@ -410,6 +419,7 @@ async function main(){
           if(texturesEnabled){
             gl.uniform3fv(materialDiffColorHandle, whiteColor);
             gl.uniform1i(textLocation, texturespath.indexOf(objects[i].texpath));
+            gl.bindTexture(gl.TEXTURE_2D, textures[texturespath.indexOf(objects[i].texpath)]);
             document.getElementById("favcolor").disabled = true;
           }
           else{
@@ -420,6 +430,36 @@ async function main(){
 
           gl.drawElements(gl.TRIANGLES, (objects[i].ind).length, gl.UNSIGNED_SHORT, 0 );
         }}
+
+        var s = scorenum.toString();
+
+        var quadsInfo = makeVerticesForString(fontInfo,s);
+        // textvao = gl.createVertexArray();
+        // gl.bindVertexArray(textvao);
+        textpositionbuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER,textpositionbuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(quadsInfo[0]),gl.DYNAMIC_DRAW);
+        textuvbuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER,textuvbuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(quadsInfo[1]),gl.DYNAMIC_DRAW);
+
+        var worldViewMatrix = utils.multiplyMatrices(viewMatrix, utils.MakeWorld(0.0,5.0,0.0,0.0,0.0,0.0,1.0));
+        var projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
+
+        gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
+        gl.uniform1f(alphaLocation, 1.0);
+        gl.uniformMatrix4fv(lightDirMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(lightDirMatrix));
+        gl.uniform3fv(specularColorHandle,  [1.0,1.0,1.0]);
+        gl.uniform1f(specShineHandle, 8.0);
+        gl.uniform3fv(lightColorHandle,  directionalLightColor);
+        gl.uniform3fv(lightDirectionHandle,  directionalLight);
+
+        gl.uniform3fv(materialDiffColorHandle, whiteColor);
+        gl.uniform1i(textLocation, 6);
+        gl.bindTexture(gl.TEXTURE_2D, textures[6]);
+        document.getElementById("favcolor").disabled = true;
+
+        gl.drawElements(gl.TRIANGLES, quadsInfo[0].length, gl.UNSIGNED_SHORT, 0);
 
         window.requestAnimationFrame(drawScene);
         }

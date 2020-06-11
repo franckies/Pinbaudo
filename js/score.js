@@ -1,5 +1,5 @@
 var fontInfo = {
-  letterHeight: 8,
+  letterHeight: 1,
   spaceWidth: 8,
   spacing: -1,
   textureWidth: 64,
@@ -31,7 +31,7 @@ var fontInfo = {
     'x': { x: 56, y: 16, width: 8, },
     'y': { x:  0, y: 24, width: 8, },
     'z': { x:  8, y: 24, width: 8, },
-    '0': { x: 16, y: 24, width: 8, },
+    '0': { x: 16, y: 24, width: 1, },
     '1': { x: 24, y: 24, width: 8, },
     '2': { x: 32, y: 24, width: 8, },
     '3': { x: 40, y: 24, width: 8, },
@@ -47,3 +47,74 @@ var fontInfo = {
     '?': { x: 56, y: 32, width: 8, },
   },
 };
+
+function makeVerticesForString(fontInfo, s) {
+  var len = s.length;
+  var numVertices = len * 6;
+  var positions = [];
+  var texcoords = [];
+  var offset = 0;
+  var off = 0;
+  var x = 0;
+  var maxX = fontInfo.textureWidth;
+  var maxY = fontInfo.textureHeight;
+  for (var ii = 0; ii < len; ++ii) {
+    var letter = s[ii];
+    var glyphInfo = fontInfo.glyphInfos[letter];
+    if (glyphInfo) {
+
+      var x2 = x + glyphInfo.width;
+      var u1 = glyphInfo.x / maxX;
+      var v1 = (glyphInfo.y + fontInfo.letterHeight - 1) / maxY;
+      var u2 = (glyphInfo.x + glyphInfo.width - 1) / maxX;
+      var v2 = glyphInfo.y / maxY;
+
+      // 6 vertices per letter
+      positions[off + 0] = x;
+      positions[off + 1] = 0;
+      positions[off + 2] = 0;
+      texcoords[offset + 0] = u1;
+      texcoords[offset + 1] = v1;
+
+      positions[off + 3] = x2;
+      positions[off + 4] = 0;
+      positions[off + 5] = 0;
+      texcoords[offset + 2] = u2;
+      texcoords[offset + 3] = v1;
+
+      positions[off + 6] = x;
+      positions[off + 7] = fontInfo.letterHeight;
+      positions[off + 8] = 0;
+      texcoords[offset + 4] = u1;
+      texcoords[offset + 5] = v2;
+
+      positions[off + 9] = x;
+      positions[off + 10] = fontInfo.letterHeight;
+      positions[off + 11] = 0;
+      texcoords[offset + 6] = u1;
+      texcoords[offset + 7] = v2;
+
+      positions[off + 12] = x2;
+      positions[off + 13] = 0;
+      positions[off + 14] = 0;
+      texcoords[offset + 8] = u2;
+      texcoords[offset + 9] = v1;
+
+      positions[off + 15] = x2;
+      positions[off + 16] = fontInfo.letterHeight;
+      positions[off + 17] = 0;
+      texcoords[offset + 10] = u2;
+      texcoords[offset + 11] = v2;
+
+      x += glyphInfo.width + fontInfo.spacing;
+      offset += 12;
+      off += 18;
+      console.log(positions);
+    } else {
+      console.log("non entrato");
+      // we don't have this character so just advance
+      x += fontInfo.spaceWidth;
+    }
+  }
+  return [positions, texcoords];
+}
