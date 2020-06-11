@@ -33,6 +33,7 @@ var lightColorHandle;
 var lightDirMatrixPositionHandle;
 var lightDirectionHandle;
 var materialDiffColorHandle;
+var ambientLightcolorHandle;
 
 //animation variables
 var deltaRot = 0.0;
@@ -77,6 +78,7 @@ uniform vec3 lightColor;
 uniform vec3 lightDirection;
 uniform vec3 specularColor;
 uniform float SpecShine;
+uniform vec3 ambientLightcolor;
 
 void main() {
   uvFS = a_uv;
@@ -88,7 +90,7 @@ void main() {
 	vec3 eyeDir = normalize( - inPosition);
 	vec3 halfVec = normalize(eyeDir + lightDirection);
 	vec3 specular = specularColor * pow(max(dot(halfVec, fsNormal),0.0),SpecShine);
-  finalColor = vec4(clamp((diffuse+specular) * lightColor, 0.0, 1.0),1.0);
+  finalColor = vec4(clamp((diffuse+specular) * lightColor + ambientLightcolor, 0.0, 1.0),1.0);
   gl_Position = matrix * vec4(inPosition, 1.0);
 }`;
 
@@ -121,9 +123,9 @@ async function main(){
     var bumpModel = new OBJ.Mesh(bumpObjStr);
 
     {//Lights
-    var dirLightAlpha = -utils.degToRad(-90);
-    var dirLightBeta  = -utils.degToRad(-0);
-
+    var dirLightAlpha = -utils.degToRad(-60);
+    var dirLightBeta  = -utils.degToRad(-60);
+    var ambientLight = [0.3,0.3,0.3];
     directionalLight = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
               Math.sin(dirLightAlpha),
               Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
@@ -180,7 +182,7 @@ async function main(){
     //reloader
     reloader.set_pos(utils.MakeWorld(12.5, 1.2, -18.0, 0.0, -45.0, 0.0, 1.0));
     //score
-    score.set_pos(utils.MakeWorld(-5.0,7.0,-16.0,-90.0,0.0,0.0,1.0));
+    score.set_pos(utils.MakeWorld(-8,5.0,-18.5,0.0,0.0,0.0,1.0));
   }
 
     //For animation
@@ -228,6 +230,7 @@ async function main(){
     var normalMatrixPositionHandle = gl.getUniformLocation(program, 'nMatrix');
     var specularColorHandle = gl.getUniformLocation(program,'specularColor');
     var specShineHandle = gl.getUniformLocation(program,'SpecShine');
+    var ambientLightcolorHandle = gl.getUniformLocation(program, 'ambientLightcolor');
     alphaLocation = gl.getUniformLocation(program, 'alpha');}
 
 
@@ -325,8 +328,6 @@ async function main(){
       //Wall collisions
       collision.checkBoundaries(ball, wallL, wallR, wallU, wallD);
 
-
-
       deltax_ball = (ball.vel[0]*deltaT) / 1000.0;
       deltay_ball = (ball.vel[1]*deltaT) / 1000.0;
       deltaz_ball = (ball.vel[2]*deltaT) / 1000.0;
@@ -335,6 +336,7 @@ async function main(){
 
     //Reset Ball position when R is pressed
     if(lastUpdateTime && recentered){
+      scoreNum = 0;
       ball.set_pos(utils.MakeWorld(9.5,1.5,-14.7,0.0,0.0,0.0,1.0));
       ball.set_vel([-reloaderSpeed,0.0,reloaderSpeed]);
     }
@@ -359,6 +361,7 @@ async function main(){
     {//Reloader animation
     var deltaPos_In = (0.8 * deltaT) / 1000.0;
     if(rUP){
+      scoreNum = 0;
       deltaPos_In = (reloader.pos()[0] + deltaPos_In > 14.0)? 0.0:deltaPos_In;
       reloader.set_pos(utils.multiplyMatrices(reloader.worldM, utils.MakeTranslateMatrix(deltaPos_In,0.0,0.0)));
       reloaderSpeed += 0.4;
@@ -404,27 +407,34 @@ async function main(){
 
           gl.uniform3fv(specularColorHandle,  [1.0,1.0,1.0]);
           gl.uniform1f(specShineHandle, 8.0);
+          gl.uniform3fv(lightColorHandle,  directionalLightColor);
+          gl.uniform3fv(lightDirectionHandle,  directionalLight);
+          gl.uniform3fv(ambientLightcolorHandle, ambientLight);
 
           //Set transparency for the Down WALL
           if(objects[q].name == "wallD" ){ gl.uniform1f(alphaLocation, 0.1); }
 
-          gl.uniform3fv(lightColorHandle,  directionalLightColor);
-          gl.uniform3fv(lightDirectionHandle,  directionalLight);
-
           gl.bindVertexArray(vao[q]);
 
-          if(texturesEnabled){
+          //Check whether textures button is enable or not and draw or not textures
+          if(texturesEnabled && objects[q].name != "score"){
             gl.uniform3fv(materialDiffColorHandle, whiteColor);
             gl.uniform1i(textLocation, texturespath.indexOf(objects[q].texpath));
             gl.bindTexture(gl.TEXTURE_2D, textures[texturespath.indexOf(objects[q].texpath)]);
             document.getElementById("favcolor").disabled = true;
           }
-          else{
+          if(!texturesEnabled && objects[q].name != "score"){
             gl.uniform3fv(materialDiffColorHandle, objects[q].col);
             gl.bindTexture(gl.TEXTURE_2D, whiteTexture);
             document.getElementById("favcolor").disabled = false;
           }
+
+          //Update UV for the score text
           if(objects[q].name == "score"){
+            gl.uniform3fv(materialDiffColorHandle, whiteColor);
+            gl.uniform1i(textLocation, texturespath.indexOf(objects[q].texpath));
+            gl.bindTexture(gl.TEXTURE_2D, textures[texturespath.indexOf(objects[q].texpath)]);
+
             if(scoreNum>99999999){
               scoreNum = 0;
             }

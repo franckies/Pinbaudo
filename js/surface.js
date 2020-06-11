@@ -45,6 +45,7 @@ var fontInfo = {
   },
 };
 
+//Function that given a texture dictionary and a string returns the uv mapping with the wanted character
 function getUVfromString(fontInfo, s){
   var len = s.length;
   var textUvs = [];
@@ -61,22 +62,25 @@ function getUVfromString(fontInfo, s){
   return textUvs;
 }
 
+
+
+//Init texture score
+var zeros = getUVfromString(fontInfo, "00000000");
+var uv2 = zeros;
+
 var normals2 = [
     0.0, 0.0, 1.0,
     0.0, 0.0, 1.0,
     0.0, 0.0, 1.0,
     0.0, 0.0, 1.0
 ];
-
-var zeros = getUVfromString(fontInfo, "00000000");
-var uv2 = zeros;
-
+//Functions drawing squares
 function draw_square(x){
     var new_vertices = [
-        x, 0.0, 0.0,
-        x+1.0, 0.0, 0.0,
-        x, 1.0, 0.0,
-        x+1.0, 1.0, 0.0
+        x*2, 0.0, 0.0,
+        x*2+2.0, 0.0, 0.0,
+        x*2, 2.0, 0.0,
+        x*2+2.0, 2.0, 0.0
     ];
     var new_indices = [
         0+x*4, 1+x*4, 2+x*4,
