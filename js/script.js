@@ -18,7 +18,7 @@ var texturesEnabled = true;
 var images = [];
 var texturespath = [];
 var pageReady = false;
-//var scoreNum = 0;
+var scoreNum = 0;
 
 //Time for animation
 var lastUpdateTime, currentTime;
@@ -180,7 +180,7 @@ async function main(){
     //reloader
     reloader.set_pos(utils.MakeWorld(12.5, 1.2, -18.0, 0.0, -45.0, 0.0, 1.0));
     //score
-    score.set_pos(utils.MakeWorld(-2.0,7.0,20.0,-90.0,0.0,0.0,1.0));
+    score.set_pos(utils.MakeWorld(-5.0,7.0,-16.0,-90.0,0.0,0.0,1.0));
   }
 
     //For animation
@@ -386,9 +386,9 @@ async function main(){
         var lightDirectionTransformed = utils.multiplyMatrix3Vector3(utils.sub3x3from4x4(lightDirMatrix),directionalLight);}
 
         {//Object rendering
-        for(i = 0; i < objects.length; i++)
+        for(q = 0; q < objects.length; q++)
         {
-          var worldViewMatrix = utils.multiplyMatrices(viewMatrix, objects[i].worldM);
+          var worldViewMatrix = utils.multiplyMatrices(viewMatrix, objects[q].worldM);
           var projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
 
           // var lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(objects[i].worldM));
@@ -397,7 +397,7 @@ async function main(){
           gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
           //var normalMatrix = utils.transposeMatrix(utils.invertMatrix(utils.transposeMatrix(objects[i].worldM)));
 
-          gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(objects[i].worldM));
+          gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(objects[q].worldM));
           //gl.uniform3fv(materialDiffColorHandle, objects[i].col);
           gl.uniform1f(alphaLocation, 1.0);
           gl.uniformMatrix4fv(lightDirMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(lightDirMatrix));
@@ -406,33 +406,35 @@ async function main(){
           gl.uniform1f(specShineHandle, 8.0);
 
           //Set transparency for the Down WALL
-          if(objects[i].name == "wallD" ){ gl.uniform1f(alphaLocation, 0.1); }
+          if(objects[q].name == "wallD" ){ gl.uniform1f(alphaLocation, 0.1); }
 
           gl.uniform3fv(lightColorHandle,  directionalLightColor);
           gl.uniform3fv(lightDirectionHandle,  directionalLight);
 
-          gl.bindVertexArray(vao[i]);
+          gl.bindVertexArray(vao[q]);
 
           if(texturesEnabled){
             gl.uniform3fv(materialDiffColorHandle, whiteColor);
-            gl.uniform1i(textLocation, texturespath.indexOf(objects[i].texpath));
-            gl.bindTexture(gl.TEXTURE_2D, textures[texturespath.indexOf(objects[i].texpath)]);
+            gl.uniform1i(textLocation, texturespath.indexOf(objects[q].texpath));
+            gl.bindTexture(gl.TEXTURE_2D, textures[texturespath.indexOf(objects[q].texpath)]);
             document.getElementById("favcolor").disabled = true;
           }
           else{
-            gl.uniform3fv(materialDiffColorHandle, objects[i].col);
+            gl.uniform3fv(materialDiffColorHandle, objects[q].col);
             gl.bindTexture(gl.TEXTURE_2D, whiteTexture);
             document.getElementById("favcolor").disabled = false;
           }
-          if(objects[i].name == "score"){
-            //var s = utils.getScoreString(100);
-
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(zeros), gl.STATIC_DRAW);
+          if(objects[q].name == "score"){
+            if(scoreNum>99999999){
+              scoreNum = 0;
+            }
+            var s = getUVfromString(fontInfo,utils.getScoreString(scoreNum));
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(s), gl.STATIC_DRAW);
             gl.enableVertexAttribArray(uvAttributeLocation);
             gl.vertexAttribPointer(uvAttributeLocation, 2, gl.FLOAT, false, 0, 0);
           }
 
-          gl.drawElements(gl.TRIANGLES, (objects[i].ind).length, gl.UNSIGNED_SHORT, 0 );
+          gl.drawElements(gl.TRIANGLES, (objects[q].ind).length, gl.UNSIGNED_SHORT, 0 );
         }}
         window.requestAnimationFrame(drawScene);
         }
