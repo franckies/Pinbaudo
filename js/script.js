@@ -16,6 +16,7 @@ var uvBuffer = new Array();
 var textures = [];
 var texturesEnabled = true;
 var images = [];
+var texturespath = [];
 var pageReady = false;
 
 //Time for animation
@@ -129,23 +130,22 @@ async function main(){
 
     {//Object construction
     var objects = new Array();
-    var ball = new dynBall("ball", draw_ball(), ballCol);
-    var cylinder1 = new Item("cyl1", [draw_bumper(bumpModel.vertices), bumpModel.vertexNormals, bumpModel.indices, bumpModel.textures], [1.0,0.0,0.0]);
-    var cylinder2 = new Item("cyl2", [draw_bumper(bumpModel.vertices), bumpModel.vertexNormals, bumpModel.indices, bumpModel.textures], [1.0,0.0,0.0]);
-    var cylinder3 = new Item("cyl3", [draw_bumper(bumpModel.vertices), bumpModel.vertexNormals, bumpModel.indices, bumpModel.textures], [1.0,0.0,0.0]);
-    var table = new Item("table", draw_par(15.0, 0.5, 20.0), [0.0,1.0,0.2]);
-    var paletteL = new dynPalette("paletteL", draw_par(3.0, 0.5, 1.0), [0.2, 0.2, 1.0]);
-    var paletteR = new dynPalette("paletteR", draw_par(3.0, 0.5, 1.0), [0.2, 0.2, 1.0]);
-    var wallL = new Item("wallL", draw_par(1.0 ,1.0 ,20.0), [0.0,1.0,0.2]);
-    var wallR = new Item("wallR", draw_par(1.0 ,1.0 ,20.0), [0.0,1.0,0.2]);
-    var wallU = new Item("wallU", draw_par(13.0 ,5.5, 0.5), [0.0,1.0,0.2]);
-    var wallS = new Item("wallS", draw_par(13.0 ,5.5, 0.5), [0.0,1.0,0.2]);
-    var wallD = new Item("wallD", draw_par(13.0 ,1.0 ,0.5), [0.0,1.0,0.2]);
-    var palWallR = new Item("palWallR", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
-    var palWallL = new Item("palWallL", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
-    var reloader = new Item("reloader", draw_par(3.0,0.5,0.5),[1.0, 0.2, 0.0]);
+    var ball = new dynBall("ball","./textures/ball.png", draw_ball(), ballCol);
+    var cylinder1 = new Item("cyl1","./textures/cyl.png", [draw_bumper(bumpModel.vertices), bumpModel.vertexNormals, bumpModel.indices, bumpModel.textures], [1.0,0.0,0.0]);
+    var cylinder2 = new Item("cyl2","./textures/cyl.png", [draw_bumper(bumpModel.vertices), bumpModel.vertexNormals, bumpModel.indices, bumpModel.textures], [1.0,0.0,0.0]);
+    var cylinder3 = new Item("cyl3","./textures/cyl.png", [draw_bumper(bumpModel.vertices), bumpModel.vertexNormals, bumpModel.indices, bumpModel.textures], [1.0,0.0,0.0]);
+    var table = new Item("table","./textures/table.png", draw_par(15.0, 0.5, 20.0), [0.0,1.0,0.2]);
+    var paletteL = new dynPalette("paletteL","./textures/palette.png", draw_par(3.0, 0.5, 1.0), [0.2, 0.2, 1.0]);
+    var paletteR = new dynPalette("paletteR","./textures/palette.png", draw_par(3.0, 0.5, 1.0), [0.2, 0.2, 1.0]);
+    var wallL = new Item("wallL","./textures/wall.png", draw_par(1.0 ,1.0 ,20.0), [0.0,1.0,0.2]);
+    var wallR = new Item("wallR","./textures/wall.png", draw_par(1.0 ,1.0 ,20.0), [0.0,1.0,0.2]);
+    var wallU = new Item("wallU","./textures/wall.png", draw_par(13.0 ,5.5, 0.5), [0.0,1.0,0.2]);
+    var wallD = new Item("wallD","./textures/wall.png", draw_par(13.0 ,1.0 ,0.5), [0.0,1.0,0.2]);
+    var palWallR = new Item("palWallR","./textures/palWall.png", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
+    var palWallL = new Item("palWallL","./textures/palWall.png", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
+    var reloader = new Item("reloader","./textures/palette.png", draw_par(3.0,0.5,0.5),[1.0, 0.2, 0.0]);
 
-    objects.push(ball, cylinder1, cylinder2, cylinder3, table, paletteL, paletteR, wallL, wallR, wallU, wallS, wallD, palWallR, palWallL,reloader);
+    objects.push(ball, cylinder1, cylinder2, cylinder3, table, paletteL, paletteR, wallL, wallR, wallU, wallD, palWallR, palWallL,reloader);
   }
 
     {//Init object position and rotation
@@ -169,7 +169,6 @@ async function main(){
     wallL.set_pos(utils.MakeWorld(-14.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
     wallR.set_pos(utils.MakeWorld(14.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
     wallU.set_pos(utils.MakeWorld(0.0, 4.5, -19.5, 0.0, 0.0, 0.0, 1.0));
-    wallS.set_pos(utils.MakeWorld(0.0, 4.5, -19.5, 0.0, 0.0, 0.0, 1.0));
     wallD.set_pos(utils.MakeWorld(0.0, 1.5, 19.5, 0.0, 0.0, 0.0, 1.0));
     //Palettes Walls
     palWallL.set_pos(utils.MakeWorld(-9.5, 1.2, 10.7, 0.0, 45.0, 0.0, 1.0));
@@ -262,13 +261,19 @@ async function main(){
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, whitePixel);
 
     for(i = 0; i< objects.length; i++){
+      if(!(texturespath.includes(objects[i].texpath))){
+        texturespath.push(objects[i].texpath);
+      }
+    }
+
+    for(i = 0; i<texturespath.length; i++){
       var image = new Image();
-      image.src = "./textures/" + objects[i].name + ".png";
+      image.src = texturespath[i];
       images.push(image);
     }
 
     setTimeout(function(){
-      for(i = 0; i<objects.length; i++){
+      for(i = 0; i<images.length; i++){
         var texture = gl.createTexture();
         gl.activeTexture(gl.TEXTURE0 + i);
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -279,8 +284,8 @@ async function main(){
         gl.generateMipmap(gl.TEXTURE_2D);
         textures.push(texture);
         pageReady = true;
-        pageLoader();
       }
+      pageLoader();
     }, 1000);
     }
 
@@ -404,8 +409,7 @@ async function main(){
 
           if(texturesEnabled){
             gl.uniform3fv(materialDiffColorHandle, whiteColor);
-            gl.uniform1i(textLocation, i);
-            gl.bindTexture(gl.TEXTURE_2D, textures[i]);
+            gl.uniform1i(textLocation, texturespath.indexOf(objects[i].texpath));
             document.getElementById("favcolor").disabled = true;
           }
           else{
@@ -529,8 +533,9 @@ function resetBall(e){
 
 //Objects class
 class Item {
-    constructor(name, [vertices,normals,indices,uv], color){
+    constructor(name, texpath, [vertices,normals,indices,uv], color){
         this.name = name;
+        this.texpath = texpath;
         this.vert = vertices;
         this.norm = normals;
         this.ind = indices;
