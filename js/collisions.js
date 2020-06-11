@@ -100,6 +100,7 @@ var collision = {
       let k =[];
       //Check collisions
       if(utils.EuclideanDistance(c_ball, cylinder[n].pos()) <= ball_radius+cyl_radius){
+        scoreNum++;
         ball.set_vel([-ball.vel[0],0.0,-ball.vel[2]]);
         for(i=0;i<4;i++){
           k[i]= utils.EuclideanDistance(ver[i],c_ball);

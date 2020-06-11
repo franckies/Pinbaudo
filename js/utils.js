@@ -678,6 +678,16 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 
 	subVec3: function(a,b){
 		return([a[0]-b[0], a[1]-b[1], a[2]-b[2]]);
-	}
+	},
+
+  getScoreString:function(scoreNum){
+    var scoreStr = scoreNum.toString();
+    var scoreLen = scoreStr.length;
+    var num = 8-scoreLen;
+    for(i = 0; i<num; i++){
+      scoreStr = "0"+ scoreStr;
+    }
+    return scoreStr;
+  }
 
 }
