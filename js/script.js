@@ -12,18 +12,13 @@ var normalBuffer = new Array();
 var indexBuffer = new Array();
 var uvBuffer = new Array();
 
-//Score handling
-var textpositionbuffer;
-var textuvbuffer;
-var textvao;
-var scorenum = 0;
-
 //Textures handling
 var textures = [];
 var texturesEnabled = true;
 var images = [];
 var texturespath = [];
 var pageReady = false;
+//var scoreNum = 0;
 
 //Time for animation
 var lastUpdateTime, currentTime;
@@ -85,13 +80,14 @@ uniform float SpecShine;
 
 void main() {
   uvFS = a_uv;
+  vec3 fsNormal = (nMatrix * vec4(inNormal,0.0)).xyz;
   //diffuse
-  vec3 diffuse = mDiffColor * max(dot(normalize(inNormal), lightDirection), 0.0);
+  vec3 diffuse = mDiffColor * max(dot(normalize(fsNormal), lightDirection), 0.0);
   // specular
   //in camera space eyePos = [0,0,0] so eyeDir = normalize(-inPosition)
 	vec3 eyeDir = normalize( - inPosition);
 	vec3 halfVec = normalize(eyeDir + lightDirection);
-	vec3 specular = specularColor * pow(max(dot(halfVec, inNormal),0.0),SpecShine);
+	vec3 specular = specularColor * pow(max(dot(halfVec, fsNormal),0.0),SpecShine);
   finalColor = vec4(clamp((diffuse+specular) * lightColor, 0.0, 1.0),1.0);
   gl_Position = matrix * vec4(inPosition, 1.0);
 }`;
@@ -150,8 +146,10 @@ async function main(){
     var palWallR = new Item("palWallR","./textures/palWall.png", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
     var palWallL = new Item("palWallL","./textures/palWall.png", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
     var reloader = new Item("reloader","./textures/palette.png", draw_par(3.0,0.5,0.5),[1.0, 0.2, 0.0]);
+    var score = new Item("score", "./textures/wallS.png", draw_squares(8), [1.0,1.0,1.0]);
 
-    objects.push(ball, cylinder1, cylinder2, cylinder3, table, paletteL, paletteR, wallL, wallR, wallU, wallD, palWallR, palWallL,reloader);
+    objects.push(ball, cylinder1, cylinder2, cylinder3, table, paletteL, paletteR, wallL, wallR, wallU, wallD, palWallR, palWallL,reloader, score);
+    console.log(objects);
   }
 
     {//Init object position and rotation
@@ -181,6 +179,8 @@ async function main(){
     palWallR.set_pos(utils.MakeWorld(9.5, 1.2, 10.7, 0.0, -45.0, 0.0, 1.0));
     //reloader
     reloader.set_pos(utils.MakeWorld(12.5, 1.2, -18.0, 0.0, -45.0, 0.0, 1.0));
+    //score
+    score.set_pos(utils.MakeWorld(-2.0,7.0,20.0,-90.0,0.0,0.0,1.0));
   }
 
     //For animation
@@ -277,9 +277,6 @@ async function main(){
       image.src = texturespath[i];
       images.push(image);
     }
-    var text = new Image();
-    text.src = "./textures/wallS.png";
-    images.push(text);
 
     setTimeout(function(){
       for(i = 0; i<images.length; i++){
@@ -427,40 +424,16 @@ async function main(){
             gl.bindTexture(gl.TEXTURE_2D, whiteTexture);
             document.getElementById("favcolor").disabled = false;
           }
+          if(objects[i].name == "score"){
+            //var s = utils.getScoreString(100);
+
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(zeros), gl.STATIC_DRAW);
+            gl.enableVertexAttribArray(uvAttributeLocation);
+            gl.vertexAttribPointer(uvAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+          }
 
           gl.drawElements(gl.TRIANGLES, (objects[i].ind).length, gl.UNSIGNED_SHORT, 0 );
         }}
-
-        var s = scorenum.toString();
-
-        var quadsInfo = makeVerticesForString(fontInfo,s);
-        // textvao = gl.createVertexArray();
-        // gl.bindVertexArray(textvao);
-        textpositionbuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER,textpositionbuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(quadsInfo[0]),gl.DYNAMIC_DRAW);
-        textuvbuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER,textuvbuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(quadsInfo[1]),gl.DYNAMIC_DRAW);
-
-        var worldViewMatrix = utils.multiplyMatrices(viewMatrix, utils.MakeWorld(0.0,5.0,0.0,0.0,0.0,0.0,1.0));
-        var projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
-
-        gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
-        gl.uniform1f(alphaLocation, 1.0);
-        gl.uniformMatrix4fv(lightDirMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(lightDirMatrix));
-        gl.uniform3fv(specularColorHandle,  [1.0,1.0,1.0]);
-        gl.uniform1f(specShineHandle, 8.0);
-        gl.uniform3fv(lightColorHandle,  directionalLightColor);
-        gl.uniform3fv(lightDirectionHandle,  directionalLight);
-
-        gl.uniform3fv(materialDiffColorHandle, whiteColor);
-        gl.uniform1i(textLocation, 6);
-        gl.bindTexture(gl.TEXTURE_2D, textures[6]);
-        document.getElementById("favcolor").disabled = true;
-
-        gl.drawElements(gl.TRIANGLES, quadsInfo[0].length, gl.UNSIGNED_SHORT, 0);
-
         window.requestAnimationFrame(drawScene);
         }
 }
