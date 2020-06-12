@@ -446,7 +446,7 @@ createProgram:function(gl, vertexShader, fragmentShader) {
 
 		det = 1.0 / det;
 
-		for (i = 0; i < 16; i++){
+		for (let i = 0; i < 16; i++){
 			out[i] = inv[i] * det;
 		}
 
@@ -684,7 +684,7 @@ createProgram:function(gl, vertexShader, fragmentShader) {
     var scoreStr = scoreNum.toString();
     var scoreLen = scoreStr.length;
     var num = 8-scoreLen;
-    for(i = 0; i<num; i++){
+    for(let i = 0; i<num; i++){
       scoreStr = "0"+ scoreStr;
     }
     return scoreStr;

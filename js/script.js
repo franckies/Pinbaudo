@@ -1,11 +1,10 @@
-{//Global variables
+//  GLOBAL VARIABLES
 var canvas;
 var gl = null;
 var program = null;
 var baseDir;
 
 //Arrays needed for objects instantiation
-var object_matrix = new Array();
 var vao = new Array();
 var positionBuffer = new Array();
 var normalBuffer = new Array();
@@ -18,22 +17,19 @@ var texturesEnabled = true;
 var images = [];
 var texturespath = [];
 var pageReady = false;
+
+//Score
 var scoreNum = 0;
 
 //Time for animation
-var lastUpdateTime, currentTime;
+var lastUpdateTime = (new Date).getTime();
+var currentTime;
 
 //Matrix for rendering
-var matrixLocation;
 var perspectiveMatrix, projectionMatrix, viewMatrix;
 
-//Light variables
-var directionalLight;
-var lightColorHandle;
+//Light variables Dove lo assegnamo???????
 var lightDirMatrixPositionHandle;
-var lightDirectionHandle;
-var materialDiffColorHandle;
-var ambientLightcolorHandle;
 
 //animation variables
 var deltaRot = 0.0;
@@ -41,6 +37,7 @@ var deltax_ball = 0.0;
 var deltay_ball = 0.0;
 var deltaz_ball = 0.0;
 var reloaderSpeed = 0.0;
+
 //Camera variables
 var cx = 0.0;
 var cy = 10.0;
@@ -56,13 +53,14 @@ var cylCol1 = [1.0,0.0,0.0];
 var cylCol2 = [1.0,0.0,0.0];
 var cylCol3 = [1.0,0.0,0.0];
 
-var  k_dissip  = 0.8;
+var k_dissip  = 0.8;
 var nFrame = 0;
 
+//Forse non funziona ?????
 var coll = true;
-}
 
-{//Shader
+
+// SHADER
 var vs = `#version 300 es
 
 in vec3 inPosition;
@@ -109,30 +107,33 @@ void main() {
   vec4 color = vec4(finalColor.rgb,alpha);
   outColor = texture(u_texture, uvFS) * color;
 }`;
-}
+
 
 async function main(){
 
+    //Hiding elements for loading animation
     document.getElementById("Lost").style.visibility = "hidden";
     document.getElementById("c").style.visibility = "hidden";
     document.getElementById("panel").style.visibility = "hidden";
     document.getElementById("legend").style.visibility = "hidden";
     document.getElementById("FPSpanel").style.visibility = "hidden";
 
+    //Bumber object loading
     var bumpObjStr =await utils.get_objstr("./models/bumper.obj");
     var bumpModel = new OBJ.Mesh(bumpObjStr);
 
-    {//Lights
+    // LIGHTS
     var dirLightAlpha = -utils.degToRad(-60);
     var dirLightBeta  = -utils.degToRad(-60);
     var ambientLight = [0.3,0.3,0.3];
-    directionalLight = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
+    var directionalLight = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
               Math.sin(dirLightAlpha),
               Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
               ];
-    directionalLightColor = [1.0, 1.0, 1.0];}
+    var directionalLightColor = [1.0, 1.0, 1.0];
 
-    {//Object construction
+
+    // OBJECT CONSTRUCTION
     var objects = new Array();
     var ball = new dynBall("ball","./textures/ball.png", draw_ball(), ballCol);
     var cylinder1 = new Item("cyl1","./textures/cyl.png", [draw_bumper(bumpModel.vertices), bumpModel.vertexNormals, bumpModel.indices, bumpModel.textures], [1.0,0.0,0.0]);
@@ -152,10 +153,10 @@ async function main(){
 
     objects.push(ball, cylinder1, cylinder2, cylinder3, table, paletteL, paletteR, wallL, wallR, wallU, wallD, palWallR, palWallL,reloader, score);
     console.log(objects);
-  }
 
-    {//Init object position and rotation
-    // Sphere
+
+    // INIT OBJECTS POSITION AND ROTATION
+    //Sphere
     ball.set_pos(utils.MakeWorld(7.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
     ball.set_vel([0.0, 0.0, 0.0]);
     //Cylinders
@@ -183,12 +184,9 @@ async function main(){
     reloader.set_pos(utils.MakeWorld(12.5, 1.2, -18.0, 0.0, -45.0, 0.0, 1.0));
     //score
     score.set_pos(utils.MakeWorld(-8,5.0,-18.5,0.0,0.0,0.0,1.0));
-  }
 
-    //For animation
-    lastUpdateTime = (new Date).getTime();
 
-    {//Canvas
+    // CANVAS
     canvas = document.getElementById("c");
     gl = canvas.getContext("webgl2");
     if (!gl) {
@@ -200,42 +198,41 @@ async function main(){
     canvas.addEventListener("mousemove", doMouseMove, false);
     canvas.addEventListener("mousewheel", doMouseWheel, false);
     canvas.addEventListener("dblclick", resetCam, false);
-    //utils.resizeCanvasToDisplaySize(gl.canvas);
     canvas.width = 1240;
     canvas.height = 700;
+
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(0.85, 0.85, 0.85, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.DEPTH_TEST);
-
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);}
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-    {//Program settings
+
+    // PROGRAM SETTINGS
     var vertexShader = utils.createShader(gl, gl.VERTEX_SHADER, vs);
     var fragmentShader = utils.createShader(gl, gl.FRAGMENT_SHADER, fs);
     program = utils.createProgram(gl, vertexShader, fragmentShader);
     gl.useProgram(program);
 
-
     var positionAttributeLocation = gl.getAttribLocation(program, "inPosition");
     var normalAttributeLocation = gl.getAttribLocation(program, "inNormal");
     var uvAttributeLocation = gl.getAttribLocation(program, "a_uv");
-    matrixLocation = gl.getUniformLocation(program, "matrix");
-    materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');
-    lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
-    lightColorHandle = gl.getUniformLocation(program, 'lightColor');
-    perspectiveMatrix = utils.MakePerspective(90, gl.canvas.width/gl.canvas.height, 0.1, 100.0);
+    var matrixLocation = gl.getUniformLocation(program, "matrix");
     var textLocation = gl.getUniformLocation(program, "u_texture");
     var normalMatrixPositionHandle = gl.getUniformLocation(program, 'nMatrix');
+    var materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');
+    var lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
+    var lightColorHandle = gl.getUniformLocation(program, 'lightColor');
     var specularColorHandle = gl.getUniformLocation(program,'specularColor');
     var specShineHandle = gl.getUniformLocation(program,'SpecShine');
     var ambientLightcolorHandle = gl.getUniformLocation(program, 'ambientLightcolor');
-    alphaLocation = gl.getUniformLocation(program, 'alpha');}
+    perspectiveMatrix = utils.MakePerspective(90, gl.canvas.width/gl.canvas.height, 0.1, 100.0);
+    alphaLocation = gl.getUniformLocation(program, 'alpha');
 
 
-    {//Passing objects to shader
-    for(i = 0; i < objects.length; i++)
+    // PASSING OBJECTS TO SHADER
+    for(let i = 0; i < objects.length; i++)
     {
       vao[i] = gl.createVertexArray();
       gl.bindVertexArray(vao[i]);
@@ -260,29 +257,30 @@ async function main(){
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(objects[i].uv), gl.STATIC_DRAW);
       gl.enableVertexAttribArray(uvAttributeLocation);
       gl.vertexAttribPointer(uvAttributeLocation, 2, gl.FLOAT, false, 0, 0);
-    }}
+    }
 
-    {//Textures
+
+    // TEXTURES
     var whiteColor = new Float32Array([1, 1, 1]);
     var whiteTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, whiteTexture);
     var whitePixel = new Uint8Array([255, 255, 255, 255]);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, whitePixel);
 
-    for(i = 0; i< objects.length; i++){
+    for(let i = 0; i< objects.length; i++){
       if(!(texturespath.includes(objects[i].texpath))){
         texturespath.push(objects[i].texpath);
       }
     }
 
-    for(i = 0; i<texturespath.length; i++){
+    for(let i = 0; i<texturespath.length; i++){
       var image = new Image();
       image.src = texturespath[i];
       images.push(image);
     }
 
     setTimeout(function(){
-      for(i = 0; i<images.length; i++){
+      for(let i = 0; i<images.length; i++){
         var texture = gl.createTexture();
         gl.activeTexture(gl.TEXTURE0 + i);
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -296,25 +294,28 @@ async function main(){
       pageReady = true;
       pageLoader();
     }, 1000);
-    }
+
 
     drawScene();
 
-    //Function to handle animation
+
     function animate(){
     nFrame++;
     currentTime = (new Date).getTime();
     let deltaT = currentTime - lastUpdateTime;
 
-    {//Ball Animation
+
+    // BALL Animation
     //Change ball color from slider
     ball.col = ballCol;
+
     //Gravity update and Collision Detection
     if(lastUpdateTime && !recentered){
       ball.gravity_update(deltaT);
-      //Palettes and wall Palettes collisions (suspende detection for 1,5sec after first detection)
-      if(coll){collision.collisionDetection(ball,[paletteL, paletteR, palWallL, palWallR]);}
-      setTimeout(function(){coll=true;}, 1500);
+
+      //Palettes and wall Palettes collisions
+      collision.collisionDetection(ball,[paletteL, paletteR, palWallL, palWallR]);
+
       //Cylinder collisions with color change
       collision.collisionCylinders(ball,[cylinder1,cylinder2,cylinder3]);
       cylinder1.col = cylCol1;
@@ -325,12 +326,14 @@ async function main(){
         cylCol2 = [1.0,0.0,0.0];
         cylCol3 = [1.0,0.0,0.0];
       }
+
       //Wall collisions
       collision.checkBoundaries(ball, wallL, wallR, wallU, wallD);
 
       deltax_ball = (ball.vel[0]*deltaT) / 1000.0;
       deltay_ball = (ball.vel[1]*deltaT) / 1000.0;
       deltaz_ball = (ball.vel[2]*deltaT) / 1000.0;
+
       ball.set_pos(utils.MakeWorld(ball.pos()[0]+deltax_ball, ball.pos()[1]+deltay_ball, ball.pos()[2]+deltaz_ball, 0.0, 0.0, 0.0, 1.0));
       }
 
@@ -340,9 +343,9 @@ async function main(){
       ball.set_pos(utils.MakeWorld(9.5,1.5,-14.7,0.0,0.0,0.0,1.0));
       ball.set_vel([-reloaderSpeed,0.0,reloaderSpeed]);
     }
-  }
 
-    {//Palette Animation
+
+    // PALETTE ANIMATION
     deltaRot = (700 * deltaT) / 1000.0;
     if(lastUpdateTime){
         paletteL.set_angle((p1UP)? (Math.min(paletteL.min_angle, paletteL.angle+deltaRot)):(Math.max(paletteL.max_angle, paletteL.angle-deltaRot)));
@@ -356,12 +359,11 @@ async function main(){
     paletteR.set_pos(utils.multiplyMatrices(utils.MakeWorld(4.2, 1.2,15.0, 0.0, 0.0, 0.0, 1.0),
     utils.multiplyMatrices(utils.MakeTranslateMatrix(1.5,0.0,0.0),
         utils.multiplyMatrices(utils.MakeRotateYMatrix(paletteR.angle), utils.MakeTranslateMatrix(-1.5,0.0,0.0)))));
-    }
 
-    {//Reloader animation
+
+    // RELOADER ANIMATION
     var deltaPos_In = (0.8 * deltaT) / 1000.0;
     if(rUP){
-      scoreNum = 0;
       deltaPos_In = (reloader.pos()[0] + deltaPos_In > 14.0)? 0.0:deltaPos_In;
       reloader.set_pos(utils.multiplyMatrices(reloader.worldM, utils.MakeTranslateMatrix(deltaPos_In,0.0,0.0)));
       reloaderSpeed += 0.4;
@@ -369,88 +371,90 @@ async function main(){
     if(!rUP){
       reloader.set_pos(utils.MakeWorld(12.5, 1.2, -18.0, 0.0, -45.0, 0.0, 1.0));
       reloaderSpeed = 0.0;
-    }}
+    }
 
     lastUpdateTime = currentTime;
 
     }
 
+
     function drawScene() {
-        animate();
-        gl.clearColor(0.85, 0.85, 0.85, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      animate();
+      gl.clearColor(0.85, 0.85, 0.85, 1.0);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        {// Camera setting
-        cz = lookRadius * Math.cos(utils.degToRad(-angle)) * Math.cos(utils.degToRad(-elevation));
-    		cx = lookRadius * Math.sin(utils.degToRad(-angle)) * Math.cos(utils.degToRad(-elevation));
-    		cy = lookRadius * Math.sin(utils.degToRad(-elevation));
-        var viewMatrix = utils.MakeView(cx, cy, cz, elevation, -angle);
-        var lightDirMatrix = utils.invertMatrix(utils.transposeMatrix(viewMatrix));
-        var lightDirectionTransformed = utils.multiplyMatrix3Vector3(utils.sub3x3from4x4(lightDirMatrix),directionalLight);}
 
-        {//Object rendering
-        for(q = 0; q < objects.length; q++)
-        {
-          var worldViewMatrix = utils.multiplyMatrices(viewMatrix, objects[q].worldM);
-          var projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
+      // CAMERA SETTINGS
+      cz = lookRadius * Math.cos(utils.degToRad(-angle)) * Math.cos(utils.degToRad(-elevation));
+      cx = lookRadius * Math.sin(utils.degToRad(-angle)) * Math.cos(utils.degToRad(-elevation));
+      cy = lookRadius * Math.sin(utils.degToRad(-elevation));
+      var viewMatrix = utils.MakeView(cx, cy, cz, elevation, -angle);
 
-          // var lightDirMatrix = utils.sub3x3from4x4(utils.transposeMatrix(objects[i].worldM));
-          // var directionalLightTransformed = utils.normalizeVec3(utils.multiplyMatrix3Vector3(lightDirMatrix, directionalLight));
 
-          gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
-          //var normalMatrix = utils.transposeMatrix(utils.invertMatrix(utils.transposeMatrix(objects[i].worldM)));
+      //CAMERA SPACE
+      var lightDirMatrix = utils.invertMatrix(utils.transposeMatrix(viewMatrix));
+      var lightDirectionTransformed = utils.multiplyMatrix3Vector3(utils.sub3x3from4x4(lightDirMatrix),directionalLight);
 
-          gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(objects[q].worldM));
-          //gl.uniform3fv(materialDiffColorHandle, objects[i].col);
-          gl.uniform1f(alphaLocation, 1.0);
-          gl.uniformMatrix4fv(lightDirMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(lightDirMatrix));
 
-          gl.uniform3fv(specularColorHandle,  [1.0,1.0,1.0]);
-          gl.uniform1f(specShineHandle, 8.0);
-          gl.uniform3fv(lightColorHandle,  directionalLightColor);
-          gl.uniform3fv(lightDirectionHandle,  directionalLight);
-          gl.uniform3fv(ambientLightcolorHandle, ambientLight);
+      // OBJECTS RENDERING
+      for(let i = 0; i < objects.length; i++)
+      {
+        var worldViewMatrix = utils.multiplyMatrices(viewMatrix, objects[i].worldM);
+        var projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
 
-          //Set transparency for the Down WALL
-          if(objects[q].name == "wallD" ){ gl.uniform1f(alphaLocation, 0.1); }
+        gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
 
-          gl.bindVertexArray(vao[q]);
+        gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(objects[i].worldM));
+        gl.uniform1f(alphaLocation, 1.0);
+        gl.uniformMatrix4fv(lightDirMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(lightDirMatrix));
 
-          //Check whether textures button is enable or not and draw or not textures
-          if(texturesEnabled && objects[q].name != "score"){
-            gl.uniform3fv(materialDiffColorHandle, whiteColor);
-            gl.uniform1i(textLocation, texturespath.indexOf(objects[q].texpath));
-            gl.bindTexture(gl.TEXTURE_2D, textures[texturespath.indexOf(objects[q].texpath)]);
-            document.getElementById("favcolor").disabled = true;
-          }
-          if(!texturesEnabled && objects[q].name != "score"){
-            gl.uniform3fv(materialDiffColorHandle, objects[q].col);
-            gl.bindTexture(gl.TEXTURE_2D, whiteTexture);
-            document.getElementById("favcolor").disabled = false;
-          }
+        gl.uniform3fv(specularColorHandle,  [1.0,1.0,1.0]);
+        gl.uniform1f(specShineHandle, 8.0);
+        gl.uniform3fv(lightColorHandle,  directionalLightColor);
+        gl.uniform3fv(lightDirectionHandle,  directionalLight);
+        gl.uniform3fv(ambientLightcolorHandle, ambientLight);
 
-          //Update UV for the score text
-          if(objects[q].name == "score"){
-            gl.uniform3fv(materialDiffColorHandle, whiteColor);
-            gl.uniform1i(textLocation, texturespath.indexOf(objects[q].texpath));
-            gl.bindTexture(gl.TEXTURE_2D, textures[texturespath.indexOf(objects[q].texpath)]);
+        //Set transparency for the Down WALL
+        if(objects[i].name == "wallD" ){ gl.uniform1f(alphaLocation, 0.1); }
 
-            if(scoreNum>99999999){
-              scoreNum = 0;
-            }
-            var s = getUVfromString(fontInfo,utils.getScoreString(scoreNum));
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(s), gl.STATIC_DRAW);
-            gl.enableVertexAttribArray(uvAttributeLocation);
-            gl.vertexAttribPointer(uvAttributeLocation, 2, gl.FLOAT, false, 0, 0);
-          }
+        gl.bindVertexArray(vao[i]);
 
-          gl.drawElements(gl.TRIANGLES, (objects[q].ind).length, gl.UNSIGNED_SHORT, 0 );
-        }}
-        window.requestAnimationFrame(drawScene);
+        //Check whether textures button is enable or not and draw or not textures
+        if(texturesEnabled && objects[i].name != "score"){
+          gl.uniform3fv(materialDiffColorHandle, whiteColor);
+          gl.uniform1i(textLocation, texturespath.indexOf(objects[i].texpath));
+          gl.bindTexture(gl.TEXTURE_2D, textures[texturespath.indexOf(objects[i].texpath)]);
+          document.getElementById("favcolor").disabled = true;
         }
+        if(!texturesEnabled && objects[i].name != "score"){
+          gl.uniform3fv(materialDiffColorHandle, objects[i].col);
+          gl.bindTexture(gl.TEXTURE_2D, whiteTexture);
+          document.getElementById("favcolor").disabled = false;
+        }
+
+        //Update UV for the score text
+        if(objects[i].name == "score"){
+          gl.uniform3fv(materialDiffColorHandle, whiteColor);
+          gl.uniform1i(textLocation, texturespath.indexOf(objects[i].texpath));
+          gl.bindTexture(gl.TEXTURE_2D, textures[texturespath.indexOf(objects[i].texpath)]);
+
+          if(scoreNum>99999999){
+            scoreNum = 0;
+          }
+          var s = getUVfromString(fontInfo,utils.getScoreString(scoreNum));
+          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(s), gl.STATIC_DRAW);
+          gl.enableVertexAttribArray(uvAttributeLocation);
+          gl.vertexAttribPointer(uvAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+        }
+
+        gl.drawElements(gl.TRIANGLES, (objects[i].ind).length, gl.UNSIGNED_SHORT, 0 );
+      }
+      window.requestAnimationFrame(drawScene);
+    }
 }
 
-{//Reloader key press
+
+// RELOADER KEY PRESS
 var rUP = false;
 
 function reloaderUPMovement(e)
@@ -471,9 +475,8 @@ function reloaderDOWNMovement(e)
   }
 }
 
-}
 
-{//Palette key press
+// PALETTE KEY PRESS
 var p1UP = false;
 var p2UP = false;
 
@@ -500,9 +503,10 @@ function paletteDOWNMovement(e)
   {
       p2UP = false;
   }
-}}
+}
 
-{//Camera key press
+
+// CAMERA KEY PRESS
   var mouseState = false;
   var lastMouseX = -100, lastMouseY = -100;
   function doMouseDown(e) {
@@ -512,6 +516,7 @@ function paletteDOWNMovement(e)
     	mouseState = true;
     }
   }
+
   function doMouseUp(e) {
     if(e.button == 0){
   	lastMouseX = -100;
@@ -519,6 +524,7 @@ function paletteDOWNMovement(e)
   	mouseState = false;
     }
   }
+
   function doMouseMove(e) {
   	if(mouseState) {
   		var dx = e.pageX - lastMouseX;
@@ -532,12 +538,14 @@ function paletteDOWNMovement(e)
   		}
   	}
   }
+
   function doMouseWheel(e) {
   	var nLookRadius = lookRadius + e.wheelDelta/1000.0;
   	if((nLookRadius > 2.0) && (nLookRadius < 20.0)) {
   		lookRadius = nLookRadius;
   	}
   }
+
   function resetCam(e){
     cx = 0.0;
     cy = 10.0;
@@ -546,17 +554,18 @@ function paletteDOWNMovement(e)
     angle = 0.0;
     lookRadius = 30.0;
   }
-}
 
-{//Ball recenter key press
+
+// BALL RECENTER KEY PRESS
 function resetBall(e){
   if(e.keyCode == 82) //r
   {
     recentered = true;
   }
-}}
+}
 
-//Objects class
+
+// OBJECTS CLASSES
 class Item {
     constructor(name, texpath, [vertices,normals,indices,uv], color){
         this.name = name;
@@ -604,15 +613,13 @@ class dynPalette extends Item{
             ([0.0,0.0,0.0]):([(deltaR*point)*Math.cos(utils.degToRad(90-this.angle)), 0.0, (deltaR*point)*Math.sin(utils.degToRad(90-this.angle))]);
 
   }
-
 }
 
 
-{//Functions calling
+// FUNCTIONS CALLING
 window.onload = main;
 window.addEventListener("keydown", paletteUPMovement, false);
 window.addEventListener("keyup", paletteDOWNMovement, false);
 window.addEventListener("keydown", resetBall, false);
 window.addEventListener("keydown", reloaderUPMovement, false);
 window.addEventListener("keyup", reloaderDOWNMovement, false);
-}

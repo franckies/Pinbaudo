@@ -6,7 +6,7 @@ var collision = {
 
     //Compute ball vertices in world space
 		var vert_list = []; // ball vertices
-		for (i=0; i<(v_ball.length-2); i=i+3){
+		for (let i=0; i<(v_ball.length-2); i=i+3){
 			var world_v = utils.multiplyMatrixVector(ball.worldM, [v_ball[i], v_ball[i+1], v_ball[i+2], 1.0]);
 
       if(world_v[2]/world_v[3] > ball.pos()[2] && world_v[1]/world_v[3]==ball.pos()[1]){
@@ -17,18 +17,18 @@ var collision = {
 		let ball_radius = utils.EuclideanDistance(c_ball, vert_list[0]);
 
     //obj is a vector of objects to be checked for collisions with the ball
-    for(k=0; k<obj.length; k++){
+    for(let k=0; k<obj.length; k++){
 
-  		for(i=0; i<vert_list.length; i++){
+  		for(let i=0; i<vert_list.length; i++){
 
   			let cur_v = vert_list[i];
         //Parameters of the line starting from the ball center and going toward the current vertex
   			let line_par = [c_ball[0], (cur_v[0] - c_ball[0]), c_ball[1], (cur_v[1] - c_ball[1]), c_ball[2], (cur_v[2] - c_ball[2])];
         //find all the planes defined by the colliding object normals
-        for (j=0; j<obj[k].ind.length-2; j=j+3){
+        for (let j=0; j<obj[k].ind.length-2; j=j+3){
 				  var n = utils.multiplyMatrix3Vector3(utils.sub3x3from4x4(obj[k].worldM), [obj[k].norm[obj[k].ind[j]*3], obj[k].norm[obj[k].ind[j]*3 + 1], obj[k].norm[obj[k].ind[j]*3 + 2]]);
 
-          //Exclude collisions with short part
+          //Exclude collisions with short part when palletes are not moving
           if(obj[k].name == "paletteL" && obj[k].angle == -45 && n[0]>0 && n[2]>0){
             continue;
           }
@@ -90,7 +90,7 @@ var collision = {
     let ball_radius = 1.0;
     let cyl_radius = 1.0;
 
-    for(n=0;n<cylinder.length;n++){
+    for(let n=0;n<cylinder.length;n++){
       //cylinder's 4 vertices
       let ver = [];
       ver[0] = [cylinder[n].pos()[0]+1.0,cylinder[n].pos()[1],cylinder[n].pos()[2]];
@@ -103,17 +103,17 @@ var collision = {
       if(utils.EuclideanDistance(c_ball, cylinder[n].pos()) <= ball_radius+cyl_radius){
         scoreNum += 3;
         ball.set_vel([-ball.vel[0],0.0,-ball.vel[2]]);
-        for(i=0;i<4;i++){
+        for(let i=0;i<4;i++){
           k[i]= utils.EuclideanDistance(ver[i],c_ball);
         }
         let q = 0;
         let min = k[0];
-        for(i=0;i<4;i++){
-          for(j=0;j<4;j++){
+        for(let i=0;i<4;i++){
+          for(let j=0;j<4;j++){
             min = Math.min(min,k[j]);
             }
           }
-        for(i=0;i<4;i++){
+        for(let i=0;i<4;i++){
           if(k[i]==min){
             q=i;
           }

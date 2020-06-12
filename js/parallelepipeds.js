@@ -129,7 +129,7 @@ var uv = [
 
 function draw_par(x,y,z) {
 	var v = [];
-	for (i = 0; i < 24; i++) {
+	for (let i = 0; i < 24; i++) {
 		v[i * 3 + 0] = vertices[i * 3 + 0] * x;
 		v[i * 3 + 1] = vertices[i * 3 + 1] * y;
 		v[i * 3 + 2] = vertices[i * 3 + 2] * z;
