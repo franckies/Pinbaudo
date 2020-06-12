@@ -332,7 +332,7 @@ async function main(){
     deltax_ball = (ball.vel[0]*deltaT) / 1000.0;
     deltay_ball = (ball.vel[1]*deltaT) / 1000.0;
     deltaz_ball = (ball.vel[2]*deltaT) / 1000.0;
-  
+
     ball.set_pos(utils.MakeWorld(ball.pos()[0]+deltax_ball, ball.pos()[1]+deltay_ball, ball.pos()[2]+deltaz_ball, 0.0, 0.0, 0.0, 1.0));
     }
 
@@ -413,7 +413,7 @@ async function main(){
       gl.uniform3fv(ambientLightcolorHandle, ambientLight);
 
       //Set transparency for the Down WALL
-      if(objects[i].name == "wallD" ){ gl.uniform1f(alphaLocation, 0.1); }
+      if(objects[i].name == "wallD" ){ gl.uniform1f(alphaLocation, 0.2); }
 
       gl.bindVertexArray(vao[i]);
 
@@ -531,7 +531,7 @@ function paletteDOWNMovement(e)
   		lastMouseY = e.pageY;
 
   		if((dx != 0) || (dy != 0)) {
-  			angle = angle + 0.2 * dx;
+  			angle = angle - 0.2 * dx;
   			elevation = elevation + 0.2 * dy;
   		}
   	}
