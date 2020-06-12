@@ -51,7 +51,7 @@ function getUVfromString(fontInfo, s){
   var textUvs = [];
   var maxX = fontInfo.maxX;
   var maxY = fontInfo.maxY;
-  for(i = 0; i< len; i++){
+  for(let i = 0; i< len; i++){
     let letter = s[i];
     var u1 = fontInfo.glyphInfos[letter].x;
     var v1 = fontInfo.glyphInfos[letter].y;
@@ -62,38 +62,34 @@ function getUVfromString(fontInfo, s){
   return textUvs;
 }
 
+var uv2 = getUVfromString(fontInfo, "00000000");
 
-
-//Init texture score
-var zeros = getUVfromString(fontInfo, "00000000");
-var uv2 = zeros;
-
-var normals2 = [
-    0.0, 0.0, 1.0,
-    0.0, 0.0, 1.0,
-    0.0, 0.0, 1.0,
-    0.0, 0.0, 1.0
-];
 //Functions drawing squares
 function draw_square(x){
-    var new_vertices = [
-        x*2, 0.0, 0.0,
-        x*2+2.0, 0.0, 0.0,
-        x*2, 2.0, 0.0,
-        x*2+2.0, 2.0, 0.0
-    ];
-    var new_indices = [
-        0+x*4, 1+x*4, 2+x*4,
-        1+x*4, 2+x*4, 3+x*4
-    ];
-    return [new_vertices, new_indices, normals2, uv2];
+  var normals2 = [
+      0.0, 0.0, 1.0,
+      0.0, 0.0, 1.0,
+      0.0, 0.0, 1.0,
+      0.0, 0.0, 1.0
+  ];
+  var new_vertices = [
+      x*2, 0.0, 0.0,
+      x*2+2.0, 0.0, 0.0,
+      x*2, 2.0, 0.0,
+      x*2+2.0, 2.0, 0.0
+  ];
+  var new_indices = [
+      0+x*4, 1+x*4, 2+x*4,
+      1+x*4, 2+x*4, 3+x*4
+  ];
+  return [new_vertices, new_indices, normals2, uv2];
 }
 
 function draw_squares(n){
     var v = [];
     var ind = [];
     var nor = [];
-    for (i=0; i < n; i++){
+    for (let i=0; i < n; i++){
         let tmp = draw_square(i);
         v = v.concat(tmp[0]);
         ind = ind.concat(tmp[1]);
