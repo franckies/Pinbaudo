@@ -28,9 +28,6 @@ var currentTime;
 //Matrix for rendering
 var perspectiveMatrix, projectionMatrix, viewMatrix;
 
-//Light variables Dove lo assegnamo???????
-var lightDirMatrixPositionHandle;
-
 //animation variables
 var deltaRot = 0.0;
 var deltax_ball = 0.0;
@@ -52,8 +49,10 @@ var ballCol = [0.5,0.5,0.5];
 var cylCol1 = [1.0,0.0,0.0];
 var cylCol2 = [1.0,0.0,0.0];
 var cylCol3 = [1.0,0.0,0.0];
+var directionalLightColor;
 
 var k_dissip  = 0.8;
+var k_dissip_pal = 0.95;
 var nFrame = 0;
 
 //Forse non funziona ?????
@@ -130,7 +129,7 @@ async function main(){
             Math.sin(dirLightAlpha),
             Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
             ];
-  var directionalLightColor = [1.0, 1.0, 1.0];
+  directionalLightColor = [1.0, 1.0, 1.0];
 
 
   // OBJECT CONSTRUCTION
@@ -139,16 +138,16 @@ async function main(){
   var cylinder1 = new Item("cyl1","./textures/cyl.png", [draw_bumper(bumpModel.vertices), bumpModel.vertexNormals, bumpModel.indices, bumpModel.textures], [1.0,0.0,0.0]);
   var cylinder2 = new Item("cyl2","./textures/cyl.png", [draw_bumper(bumpModel.vertices), bumpModel.vertexNormals, bumpModel.indices, bumpModel.textures], [1.0,0.0,0.0]);
   var cylinder3 = new Item("cyl3","./textures/cyl.png", [draw_bumper(bumpModel.vertices), bumpModel.vertexNormals, bumpModel.indices, bumpModel.textures], [1.0,0.0,0.0]);
-  var table = new Item("table","./textures/table.png", draw_par(15.0, 0.5, 20.0), [0.0,1.0,0.2]);
-  var paletteL = new dynPalette("paletteL","./textures/palette.png", draw_par(3.0, 0.5, 1.0), [0.2, 0.2, 1.0]);
-  var paletteR = new dynPalette("paletteR","./textures/palette.png", draw_par(3.0, 0.5, 1.0), [0.2, 0.2, 1.0]);
-  var wallL = new Item("wallL","./textures/wall.png", draw_par(1.0 ,1.0 ,20.0), [0.0,1.0,0.2]);
-  var wallR = new Item("wallR","./textures/wall.png", draw_par(1.0 ,1.0 ,20.0), [0.0,1.0,0.2]);
-  var wallU = new Item("wallU","./textures/wall.png", draw_par(13.0 ,5.5, 0.5), [0.0,1.0,0.2]);
-  var wallD = new Item("wallD","./textures/wall.png", draw_par(13.0 ,1.0 ,0.5), [0.0,1.0,0.2]);
-  var palWallR = new Item("palWallR","./textures/palWall.png", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
-  var palWallL = new Item("palWallL","./textures/palWall.png", draw_par(4.0,0.5,0.5), [0.2, 0.2, 1.0]);
-  var reloader = new Item("reloader","./textures/palette.png", draw_par(3.0,0.5,0.5),[1.0, 0.2, 0.0]);
+  var table = new Item("table","./textures/table.png", draw_par(15.0, 0.5, 20.0, "table"), [0.0,1.0,0.2]);
+  var paletteL = new dynPalette("paletteL","./textures/paletteL.png", draw_par(3.0, 0.5, 1.0, "paletteL"), [0.2, 0.2, 1.0]);
+  var paletteR = new dynPalette("paletteR","./textures/paletteR.png", draw_par(3.0, 0.5, 1.0, "paletteR"), [0.2, 0.2, 1.0]);
+  var wallL = new Item("wallL","./textures/wall.png", draw_par(1.0 ,1.0 ,20.0, "wallL"), [0.0,1.0,0.2]);
+  var wallR = new Item("wallR","./textures/wall.png", draw_par(1.0 ,1.0 ,20.0, "wallR"), [0.0,1.0,0.2]);
+  var wallU = new Item("wallU","./textures/wall.png", draw_par(15.0 ,5.5, 0.5, "wallU"), [0.0,1.0,0.2]);
+  var wallD = new Item("wallD","./textures/wall.png", draw_par(13.0 ,1.0 ,0.5, "wallD"), [0.0,1.0,0.2]);
+  var palWallR = new Item("palWallR","./textures/relowallpal.png", draw_par(4.0,0.5,0.5, "palWallR"), [0.2, 0.2, 1.0]);
+  var palWallL = new Item("palWallL","./textures/relowallpal.png", draw_par(4.0,0.5,0.5, "palWallL"), [0.2, 0.2, 1.0]);
+  var reloader = new Item("reloader","./textures/relowallpal.png", draw_par(3.0,0.5,0.5, "reloader"),[1.0, 0.2, 0.0]);
   var score = new Item("score", "./textures/wallS.png", draw_squares(8), [1.0,1.0,1.0]);
 
   objects.push(ball, cylinder1, cylinder2, cylinder3, table, paletteL, paletteR, wallL, wallR, wallU, wallD, palWallR, palWallL,reloader, score);
@@ -183,7 +182,7 @@ async function main(){
   //reloader
   reloader.set_pos(utils.MakeWorld(12.5, 1.2, -18.0, 0.0, -45.0, 0.0, 1.0));
   //score
-  score.set_pos(utils.MakeWorld(-8,5.0,-18.5,0.0,0.0,0.0,1.0));
+  score.set_pos(utils.MakeWorld(-8,4.0,-18.7,0.0,0.0,0.0,1.0));
 
 
   // CANVAS
@@ -333,7 +332,7 @@ async function main(){
     deltax_ball = (ball.vel[0]*deltaT) / 1000.0;
     deltay_ball = (ball.vel[1]*deltaT) / 1000.0;
     deltaz_ball = (ball.vel[2]*deltaT) / 1000.0;
-
+  
     ball.set_pos(utils.MakeWorld(ball.pos()[0]+deltax_ball, ball.pos()[1]+deltay_ball, ball.pos()[2]+deltaz_ball, 0.0, 0.0, 0.0, 1.0));
     }
 
@@ -406,10 +405,9 @@ async function main(){
 
       gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(objects[i].worldM));
       gl.uniform1f(alphaLocation, 1.0);
-      gl.uniformMatrix4fv(lightDirMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(lightDirMatrix));
 
       gl.uniform3fv(specularColorHandle,  [1.0,1.0,1.0]);
-      gl.uniform1f(specShineHandle, 8.0);
+      gl.uniform1f(specShineHandle, 64.0);
       gl.uniform3fv(lightColorHandle,  directionalLightColor);
       gl.uniform3fv(lightDirectionHandle,  directionalLight);
       gl.uniform3fv(ambientLightcolorHandle, ambientLight);

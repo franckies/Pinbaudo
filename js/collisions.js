@@ -10,10 +10,9 @@ var collision = {
 			var world_v = utils.multiplyMatrixVector(ball.worldM, [v_ball[i], v_ball[i+1], v_ball[i+2], 1.0]);
 
       if(world_v[2]/world_v[3] > ball.pos()[2] && world_v[1]/world_v[3]==ball.pos()[1]){
-			     vert_list.push([world_v[0]/world_v[3], world_v[1]/world_v[3], world_v[2]/world_v[3]]);
+			   vert_list.push([world_v[0]/world_v[3], world_v[1]/world_v[3], world_v[2]/world_v[3]]);
       }
 		}
-
 		let ball_radius = utils.EuclideanDistance(c_ball, vert_list[0]);
 
     //obj is a vector of objects to be checked for collisions with the ball
@@ -197,7 +196,7 @@ var velocityUpdate = {
     if(obj.name == "paletteL" || obj.name == "paletteR"){
       if(obj.angle != obj.max_angle && obj.angle != obj.min_angle){
       obj_vel = obj.get_vel(deltaRot, int_point);
-      ball.set_vel([(obj_vel[0]+ball.vel[0])*k_dissip, 0.0, (-obj_vel[2]-ball.vel[2])*k_dissip]);
+      ball.set_vel([(obj_vel[0]+ball.vel[0])*k_dissip_pal, 0.0, (-obj_vel[2]-ball.vel[2])*k_dissip_pal]);
     }
     //else if the palette is not in movement, then adjust ball velocity in another way
       else{
@@ -210,7 +209,7 @@ var velocityUpdate = {
           v = utils.normVec3(ball.vel);
           v_x = v*Math.sin(alpha);
           v_z = v*Math.cos(alpha);
-          ball.set_vel([k_dissip*v_x, 0.0,-k_dissip*v_z ]);
+          ball.set_vel([k_dissip_pal*v_x, 0.0,-k_dissip_pal*v_z ]);
         }
           if(obj.angle == obj.min_angle){
           norm_vel = utils.normalizeVec3([-ball.vel[0],-ball.vel[1],-ball.vel[2]]);
@@ -220,7 +219,7 @@ var velocityUpdate = {
           v = utils.normVec3(ball.vel);
           v_x = v*Math.sin(alpha);
           v_z = v*Math.cos(alpha);
-          ball.set_vel([-k_dissip*v_x, 0.0,-k_dissip*v_z ]);
+          ball.set_vel([-k_dissip_pal*v_x, 0.0,-k_dissip_pal*v_z ]);
         }
         }
 
@@ -233,7 +232,7 @@ var velocityUpdate = {
           v = utils.normVec3(ball.vel);
           v_x = v*Math.sin(alpha);
           v_z = v*Math.cos(alpha);
-          ball.set_vel([-k_dissip*v_x, 0.0,-k_dissip*v_z ]);
+          ball.set_vel([-k_dissip_pal*v_x, 0.0,-k_dissip_pal*v_z ]);
         }
           if(obj.angle == obj.min_angle){
           norm_vel = utils.normalizeVec3([-ball.vel[0],-ball.vel[1],-ball.vel[2]]);
@@ -243,7 +242,7 @@ var velocityUpdate = {
           v = utils.normVec3(ball.vel);
           v_x = v*Math.sin(alpha);
           v_z = v*Math.cos(alpha);
-          ball.set_vel([+k_dissip*v_x, 0.0,-k_dissip*v_z ]);
+          ball.set_vel([+k_dissip_pal*v_x, 0.0,-k_dissip_pal*v_z ]);
         }
         }
       }
