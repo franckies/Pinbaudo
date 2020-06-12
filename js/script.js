@@ -159,7 +159,7 @@ async function main(){
   ball.set_pos(utils.MakeWorld(7.0, 1.5, 0.0, 0.0, 0.0, 0.0, 1.0));
   ball.set_vel([0.0, 0.0, 0.0]);
   //Cylinders
-  cylinder1.set_pos(utils.MakeWorld(5.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0));
+  cylinder1.set_pos(utils.MakeWorld(5.2, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0));
   cylinder2.set_pos(utils.MakeWorld(0.0, 1.0, -5.0, 0.0, 0.0, 0.0, 1.0));
   cylinder3.set_pos(utils.MakeWorld(-5.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0));
   // Table
