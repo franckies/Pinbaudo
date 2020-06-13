@@ -70,6 +70,7 @@ var collision = {
   				var test = utils.pInTriangle(int_point, [p[0], p[1], p[2]]);
 
   				if (test==true){
+            audioPalette.play();
             scoreNum++;
             //When a collision is detected update ball velocity
             velocityUpdate.palettesVelUpdate(ball, obj[k], int_point);
@@ -100,6 +101,7 @@ var collision = {
       let k =[];
       //Check collisions
       if(utils.EuclideanDistance(c_ball, cylinder[n].pos()) <= ball_radius+cyl_radius){
+        audioBumper.play();
         scoreNum += 3;
         ball.set_vel([-ball.vel[0],0.0,-ball.vel[2]]);
         for(let i=0;i<4;i++){
@@ -156,6 +158,7 @@ var collision = {
     let c_wD = wallD.pos();
     //Check game lost
     if(c_ball[0] > -4 && c_ball[0] < 4 && c_ball[2] + ball_radius > 18.5){
+      audioLoose.play();
       document.getElementById("Lost").style.visibility = "visible";
       recentered = true;
       cx = 0.0;
