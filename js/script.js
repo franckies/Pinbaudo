@@ -34,6 +34,8 @@ var deltax_ball = 0.0;
 var deltay_ball = 0.0;
 var deltaz_ball = 0.0;
 var reloaderSpeed = 0.0;
+var anglex_ball = 0.0;
+var anglez_ball = 0.0;
 
 //Camera variables
 var cx = 0.0;
@@ -339,7 +341,10 @@ async function main(){
     deltay_ball = (ball.vel[1]*deltaT) / 1000.0;
     deltaz_ball = (ball.vel[2]*deltaT) / 1000.0;
 
-    ball.set_pos(utils.MakeWorld(ball.pos()[0]+deltax_ball, ball.pos()[1]+deltay_ball, ball.pos()[2]+deltaz_ball, 0.0, 0.0, 0.0, 1.0));
+    anglex_ball += deltaz_ball;
+    anglez_ball += deltax_ball;
+
+    ball.set_pos(utils.MakeWorld(ball.pos()[0]+deltax_ball, 1.5, ball.pos()[2]+deltaz_ball, anglex_ball*180/Math.PI, 0.0, anglez_ball*180/Math.PI, 1.0));
     }
 
   //Reset Ball position when R is pressed
