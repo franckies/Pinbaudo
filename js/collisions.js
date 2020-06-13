@@ -9,7 +9,7 @@ var collision = {
 		for (let i=0; i<(v_ball.length-2); i=i+3){
 			var world_v = utils.multiplyMatrixVector(ball.worldM, [v_ball[i], v_ball[i+1], v_ball[i+2], 1.0]);
 
-      if(world_v[2]/world_v[3] > ball.pos()[2] && world_v[1]/world_v[3]==ball.pos()[1]){
+      if(world_v[2]/world_v[3] > ball.pos()[2] && Math.abs(world_v[1]/world_v[3] - ball.pos()[1]) < 0.1){
 			   vert_list.push([world_v[0]/world_v[3], world_v[1]/world_v[3], world_v[2]/world_v[3]]);
       }
 		}
@@ -120,20 +120,24 @@ var collision = {
           }
         }
         if(q==0){
-          let a = utils.MakeTranslateMatrix(0.2,0.0,0.0);
-          ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+          // let a = utils.MakeTranslateMatrix(0.2,0.0,0.0);
+          // ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+          ball.set_pos(utils.MakeWorld(ball.pos()[0]+0.2, ball.pos()[1], ball.pos()[2], anglex_ball*180/Math.PI, 0.0, anglez_ball*180/Math.PI));
         }
         else if(q==1){
-          let a = utils.MakeTranslateMatrix(-0.2,0.0,0.0);
-          ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+          // let a = utils.MakeTranslateMatrix(-0.2,0.0,0.0);
+          // ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+          ball.set_pos(utils.MakeWorld(ball.pos()[0]-0.2, ball.pos()[1], ball.pos()[2], anglex_ball*180/Math.PI, 0.0, anglez_ball*180/Math.PI));
         }
         else if(q==2){
-          let a = utils.MakeTranslateMatrix(0.0,0.0,0.2);
-          ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+          // let a = utils.MakeTranslateMatrix(0.0,0.0,0.2);
+          // ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+          ball.set_pos(utils.MakeWorld(ball.pos()[0], ball.pos()[1], ball.pos()[2]+0.2, anglex_ball*180/Math.PI, 0.0, anglez_ball*180/Math.PI));
         }
         else if(q==3){
-          let a = utils.MakeTranslateMatrix(0.0,0.0,-0.2);
-          ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+          // let a = utils.MakeTranslateMatrix(0.0,0.0,-0.2);
+          // ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+          ball.set_pos(utils.MakeWorld(ball.pos()[0], ball.pos()[1], ball.pos()[2]-0.2, anglex_ball*180/Math.PI, 0.0, anglez_ball*180/Math.PI));
         }
         if(cylinder[n].name == "cyl1"){
           cylCol1 = [0.9,1.0,0.1];
@@ -171,23 +175,27 @@ var collision = {
     if(c_ball[0] - ball_radius < c_wL[0] + 1.0){
       ball.set_vel([-k_dissip*ball.vel[0],0.0,k_dissip*ball.vel[2]]);
       //Reposition ball to avoid it going in walls
-      let a = utils.MakeTranslateMatrix(0.2,0.0,0.0);
-      ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+      // let a = utils.MakeTranslateMatrix(0.2,0.0,0.0);
+      // ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+      ball.set_pos(utils.MakeWorld(ball.pos()[0]+0.2, ball.pos()[1], ball.pos()[2], anglex_ball*180/Math.PI, 0.0, anglez_ball*180/Math.PI));
     }
     if(c_ball[0] + ball_radius > c_wR[0] -1.0){
       ball.set_vel([-k_dissip*ball.vel[0],0.0,k_dissip*ball.vel[2]]);
-      let a = utils.MakeTranslateMatrix(-0.2,0.0,0.0);
-      ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+      // let a = utils.MakeTranslateMatrix(-0.2,0.0,0.0);
+      // ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+      ball.set_pos(utils.MakeWorld(ball.pos()[0]-0.2, ball.pos()[1], ball.pos()[2], anglex_ball*180/Math.PI, 0.0, anglez_ball*180/Math.PI));
     }
     if(c_ball[2] - ball_radius < c_wU[2] + 0.5){
-		  ball.set_vel([+k_dissip*ball.vel[0],0.0,-k_dissip*ball.vel[2]]);
-      let a = utils.MakeTranslateMatrix(0.0,0.0,0.2);
-      ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+      ball.set_vel([+k_dissip*ball.vel[0],0.0,-k_dissip*ball.vel[2]]);
+      // let a = utils.MakeTranslateMatrix(0.0,0.0,0.2);
+      // ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+      ball.set_pos(utils.MakeWorld(ball.pos()[0], ball.pos()[1], ball.pos()[2]+0.2, anglex_ball*180/Math.PI, 0.0, anglez_ball*180/Math.PI));
     }
     if(c_ball[2] + ball_radius > c_wD[2] - 0.5){
       ball.set_vel([+k_dissip*ball.vel[0],0.0,-k_dissip*ball.vel[2]]);
-      let a = utils.MakeTranslateMatrix(0.0,0.0,-0.2);
-      ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+      // let a = utils.MakeTranslateMatrix(0.0,0.0,-0.2);
+      // ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+      ball.set_pos(utils.MakeWorld(ball.pos()[0], ball.pos()[1], ball.pos()[2]-0.2, anglex_ball*180/Math.PI, 0.0, anglez_ball*180/Math.PI));
     }
   }
 }
