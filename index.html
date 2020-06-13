@@ -15,6 +15,7 @@
     <script type="text/javascript" src="js/bumper.js"></script>
     <script type="text/javascript" src="js/cylinder.js"></script>
     <script type="text/javascript" src="js/surface.js"></script>
+    <script type="text/javascript" src="js/highestscore.js"></script>
     <script type="text/javascript" src="js/script.js"></script>
 
 </head>
@@ -39,6 +40,11 @@
    </p>
  </div>
 
+ <div id = "Score">
+   <p>Top Score: </p>
+   <p id = "TopScore"></p>
+ </div>
+
 <div id="panel">
  <td>
  <p><h2> Control Panel </h2></p>
@@ -51,7 +57,7 @@
  <br>
  <b> Change ball color </b>
  <div id="slider1">
-   <input type="color" id="favcolor" name="favcolor" value="#646262" onChange = "onColorChange(this.value)">
+   <input type="color" id="favcolor" name="favcolor" value="#000000" onChange = "onColorChange(this.value)">
    <br>
  </div>
  <br>
@@ -67,14 +73,21 @@
   <h3>FPS</h3>
   <p id= "FPS">  </p>
 </div>
+
 <div id = "Lost">
+  <div id = "LostGame">
   <h1> Game Lost </h1>
+  </div>
+  <div id = "SpaceBar">
+  <h1> SpaceBar to restart </h1>
+  </div>
 </div>
+
 <div id = "Loading">
   <h1> Loading... </h1>
 </div>
 
-//Audios
+<!--Audios!-->
 <audio id="audioPalette" src="audio/palettes.wav" ></audio>
 <audio id="audioBumper" src="audio/bumper.wav" ></audio>
 <audio id="audioReloader" src="audio/reloader.wav" ></audio>

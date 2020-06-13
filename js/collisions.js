@@ -9,7 +9,7 @@ var collision = {
 		for (let i=0; i<(v_ball.length-2); i=i+3){
 			var world_v = utils.multiplyMatrixVector(ball.worldM, [v_ball[i], v_ball[i+1], v_ball[i+2], 1.0]);
 
-      if(world_v[2]/world_v[3] > ball.pos()[2] && Math.abs(world_v[1]/world_v[3] - ball.pos()[1]) < 0.1){
+      if(world_v[2]/world_v[3] > ball.pos()[2] && Math.abs(world_v[1]/world_v[3] - ball.pos()[1]) < 0.05){
 			   vert_list.push([world_v[0]/world_v[3], world_v[1]/world_v[3], world_v[2]/world_v[3]]);
       }
 		}
@@ -75,8 +75,9 @@ var collision = {
             //When a collision is detected update ball velocity
             velocityUpdate.palettesVelUpdate(ball, obj[k], int_point);
             velocityUpdate.palettesWallVelUpdate(ball,obj[k], int_point);
-            var a = utils.MakeTranslateMatrix((-cur_v[0]+int_point[0]), 0, (-cur_v[2]+int_point[2]));
-            ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+            // var a = utils.MakeTranslateMatrix((-cur_v[0]+int_point[0]), 0, (-cur_v[2]+int_point[2]));
+            // ball.set_pos(utils.multiplyMatrices(ball.worldM, a));
+            ball.set_pos(utils.MakeWorld(ball.pos()[0]-cur_v[0]+int_point[0], ball.pos()[1], ball.pos()[2]-cur_v[2]+int_point[2], anglex_ball*180/Math.PI, 0.0, anglez_ball*180/Math.PI));
             coll=false;
             return null;
           }
@@ -163,6 +164,7 @@ var collision = {
     //Check game lost
     if(c_ball[0] > -4 && c_ball[0] < 4 && c_ball[2] + ball_radius > 18.5){
       audioLoose.play();
+      saveScore("./score/output.txt", scoreToSave);
       document.getElementById("Lost").style.visibility = "visible";
       recentered = true;
       cx = 0.0;
