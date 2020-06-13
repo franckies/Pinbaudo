@@ -26,7 +26,7 @@ var lastUpdateTime = (new Date).getTime();
 var currentTime;
 
 //Matrix for rendering
-var perspectiveMatrix, projectionMatrix, viewMatrix;
+var perspectiveMatrix, worldViewProjection, viewMatrix;
 
 //animation variables
 var deltaRot = 0.0;
@@ -109,6 +109,12 @@ void main() {
 
 
 async function main(){
+
+  //Audio effects
+  var palettesAudio = document.getElementById("audioPalette");
+  var bumperAudio = document.getElementById("audioBumper");
+  var reloaderAudio = document.getElementById("audioReloader");
+  var looseAudio = document.getElementById("audioLoose");
 
   //Hiding elements for loading animation
   document.getElementById("Lost").style.visibility = "hidden";
@@ -339,6 +345,7 @@ async function main(){
   //Reset Ball position when R is pressed
   if(lastUpdateTime && recentered){
     scoreNum = 0;
+    if(rUP){audioReloader.play();}
     ball.set_pos(utils.MakeWorld(9.5,1.5,-14.7,0.0,0.0,0.0,1.0));
     ball.set_vel([-reloaderSpeed,0.0,reloaderSpeed]);
   }
@@ -399,9 +406,9 @@ async function main(){
     for(let i = 0; i < objects.length; i++)
     {
       var worldViewMatrix = utils.multiplyMatrices(viewMatrix, objects[i].worldM);
-      var projectionMatrix = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
+      var worldViewProjection = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
 
-      gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(projectionMatrix));
+      gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(worldViewProjection));
 
       gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(objects[i].worldM));
       gl.uniform1f(alphaLocation, 1.0);
@@ -505,52 +512,51 @@ function paletteDOWNMovement(e)
 
 
 // CAMERA KEY PRESS
-  var mouseState = false;
-  var lastMouseX = -100, lastMouseY = -100;
-  function doMouseDown(e) {
-    if(e.button == 0){
-      lastMouseX = e.pageX;
-    	lastMouseY = e.pageY;
-    	mouseState = true;
+var mouseState = false;
+var lastMouseX = -100, lastMouseY = -100;
+function doMouseDown(e) {
+  if(e.button == 0){
+    lastMouseX = e.pageX;
+    lastMouseY = e.pageY;
+    mouseState = true;
+  }
+}
+
+function doMouseUp(e) {
+  if(e.button == 0){
+  lastMouseX = -100;
+  lastMouseY = -100;
+  mouseState = false;
+  }
+}
+
+function doMouseMove(e) {
+  if(mouseState) {
+    var dx = e.pageX - lastMouseX;
+    var dy = lastMouseY - e.pageY;
+    lastMouseX = e.pageX;
+    lastMouseY = e.pageY;
+
+    if((dx != 0) || (dy != 0)) {
+      angle = angle - 0.2 * dx;
+      elevation = elevation + 0.2 * dy;
     }
   }
+}
 
-  function doMouseUp(e) {
-    if(e.button == 0){
-  	lastMouseX = -100;
-  	lastMouseY = -100;
-  	mouseState = false;
-    }
-  }
+function doMouseWheel(e) {
+  var nLookRadius = lookRadius +  Math.sign(e.wheelDelta);
+  lookRadius = nLookRadius;
+}
 
-  function doMouseMove(e) {
-  	if(mouseState) {
-  		var dx = e.pageX - lastMouseX;
-  		var dy = lastMouseY - e.pageY;
-  		lastMouseX = e.pageX;
-  		lastMouseY = e.pageY;
-
-  		if((dx != 0) || (dy != 0)) {
-  			angle = angle - 0.2 * dx;
-  			elevation = elevation + 0.2 * dy;
-  		}
-  	}
-  }
-
-  function doMouseWheel(e) {
-  	var nLookRadius = lookRadius +  Math.sign(e.wheelDelta);
-    console.log(lookRadius);
-    lookRadius = nLookRadius;
-  }
-
-  function resetCam(e){
-    cx = 0.0;
-    cy = 10.0;
-    cz = 25.0;
-    elevation = -25.0;
-    angle = 0.0;
-    lookRadius = 30.0;
-  }
+function resetCam(e){
+  cx = 0.0;
+  cy = 10.0;
+  cz = 25.0;
+  elevation = -25.0;
+  angle = 0.0;
+  lookRadius = 30.0;
+}
 
 
 // BALL RECENTER KEY PRESS
