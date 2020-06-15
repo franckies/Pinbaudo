@@ -21,18 +21,6 @@ canvas {
 h2{
   text-align: center;
 }
-#Score{
-  position: absolute;
-  z-index: 1;
-  left: 50%;
-  top: 10px;
-  width:100px;
-  height:100px;
-  background-color: white;
-  opacity: 0.7;
-  padding: 5px 5px 5px 5px;
-  overflow:auto;
-}
 
 #legend{
   position: absolute;

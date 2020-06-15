@@ -56,12 +56,8 @@ var directionalLightColor;
 var k_dissip  = 0.8;
 var k_dissip_pal = 0.95;
 var nFrame = 0;
-var scoreToSave;
-var highestScore;
-//console.log(highestScore);
-getHighestScore("./score/output.txt");
 
-// SHADER
+// VERTEX SHADER
 var vs = `#version 300 es
 
 in vec3 inPosition;
@@ -75,8 +71,6 @@ uniform mat4 nMatrix;
 uniform mat4 matrix;
 uniform vec3 lightColor;
 uniform vec3 lightDirection;
-uniform vec3 specularColor;
-uniform float SpecShine;
 uniform vec3 ambientLightcolor;
 
 void main() {
@@ -84,12 +78,7 @@ void main() {
   vec3 fsNormal = (nMatrix * vec4(inNormal,0.0)).xyz;
   //diffuse
   vec3 diffuse = mDiffColor * max(-dot(lightDirection, normalize(fsNormal)), 0.0);
-  // specular
-  //in camera space eyePos = [0,0,0] so eyeDir = normalize(-inPosition)
-	vec3 eyeDir = normalize( - inPosition);
-	vec3 halfVec = normalize(eyeDir + lightDirection);
-	vec3 specular = specularColor * pow(max(dot(halfVec, fsNormal),0.0),SpecShine);
-  finalColor = vec4(clamp((diffuse+specular) * lightColor + ambientLightcolor, 0.0, 1.0),1.0);
+  finalColor = vec4(clamp((diffuse) * lightColor + ambientLightcolor, 0.0, 1.0),1.0);
   gl_Position = matrix * vec4(inPosition, 1.0);
 }`;
 
@@ -111,8 +100,6 @@ void main() {
 
 
 async function main(){
-  //Top score
-  document.getElementById("TopScore").innerHTML = highestScore.toString();
 
   //Audio effects
   var palettesAudio = document.getElementById("audioPalette");
@@ -233,8 +220,6 @@ async function main(){
   var materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');
   var lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
   var lightColorHandle = gl.getUniformLocation(program, 'lightColor');
-  var specularColorHandle = gl.getUniformLocation(program,'specularColor');
-  var specShineHandle = gl.getUniformLocation(program,'SpecShine');
   var ambientLightcolorHandle = gl.getUniformLocation(program, 'ambientLightcolor');
   perspectiveMatrix = utils.MakePerspective(90, gl.canvas.width/gl.canvas.height, 0.1, 100.0);
   alphaLocation = gl.getUniformLocation(program, 'alpha');
@@ -313,7 +298,6 @@ async function main(){
   currentTime = (new Date).getTime();
   let deltaT = currentTime - lastUpdateTime;
 
-
   // BALL Animation
   //Change ball color from slider
   ball.col = ballCol;
@@ -351,7 +335,6 @@ async function main(){
 
   //Reset Ball position when R is pressed
   if(lastUpdateTime && recentered){
-    scoreToSave = scoreNum;
     scoreNum = 0;
     if(rUP){audioReloader.play();}
     ball.set_pos(utils.MakeWorld(9.5,1.5,-14.7,0.0,0.0,0.0,1.0));
@@ -421,8 +404,6 @@ async function main(){
       gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(worldViewMatrix));
       gl.uniform1f(alphaLocation, 1.0);
 
-      gl.uniform3fv(specularColorHandle,  [1.0,1.0,1.0]);
-      gl.uniform1f(specShineHandle, 64.0);
       gl.uniform3fv(lightColorHandle,  directionalLightColor);
       gl.uniform3fv(lightDirectionHandle,  lightDirectionTransformed);
       gl.uniform3fv(ambientLightcolorHandle, ambientLight);

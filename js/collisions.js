@@ -164,7 +164,6 @@ var collision = {
     //Check game lost
     if(c_ball[0] > -4 && c_ball[0] < 4 && c_ball[2] + ball_radius > 18.5){
       audioLoose.play();
-      saveScore("./score/output.txt", scoreToSave);
       document.getElementById("Lost").style.visibility = "visible";
       recentered = true;
       cx = 0.0;
