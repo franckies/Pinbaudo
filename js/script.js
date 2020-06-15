@@ -69,6 +69,7 @@ in vec3 inNormal;
 in vec2 a_uv;
 out vec4 finalColor;
 out vec2 uvFS;
+out vec3 specular;
 
 uniform vec3 mDiffColor;
 uniform mat4 nMatrix;
@@ -87,9 +88,10 @@ void main() {
   // specular
   //in camera space eyePos = [0,0,0] so eyeDir = normalize(-inPosition)
 	vec3 eyeDir = normalize( - inPosition);
-	vec3 halfVec = normalize(eyeDir + lightDirection);
-	vec3 specular = specularColor * pow(max(dot(halfVec, fsNormal),0.0),SpecShine);
-  finalColor = vec4(clamp((diffuse+specular) * lightColor + ambientLightcolor, 0.0, 1.0),1.0);
+	// vec3 halfVec = normalize(eyeDir + lightDirection);
+	vec3 reflectDir = reflect(lightDirection, fsNormal);
+  specular = specularColor * pow(max(dot(eyeDir, reflectDir),0.0),SpecShine);
+  finalColor = vec4(clamp((diffuse * lightColor) + specular + ambientLightcolor, 0.0, 1.0),1.0);
   gl_Position = matrix * vec4(inPosition, 1.0);
 }`;
 
@@ -99,6 +101,7 @@ precision mediump float;
 
 in vec4 finalColor;
 in vec2 uvFS;
+in vec3 specular;
 out vec4 outColor;
 
 uniform float alpha;
@@ -106,7 +109,8 @@ uniform sampler2D u_texture;
 
 void main() {
   vec4 color = vec4(finalColor.rgb,alpha);
-  outColor = texture(u_texture, uvFS) * color;
+  vec4 outColorfs = texture(u_texture, uvFS) * color;
+  outColor = outColorfs + vec4(specular, 1.0);
 }`;
 
 
