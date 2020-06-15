@@ -47,19 +47,19 @@ var lookRadius = 30.0;
 
 //Control Panel variables
 var recentered = true;
-var ballCol = [0.5,0.5,0.5];
+var ballCol = [0.0,0.0,0.0];
 var cylCol1 = [1.0,0.0,0.0];
 var cylCol2 = [1.0,0.0,0.0];
 var cylCol3 = [1.0,0.0,0.0];
 var directionalLightColor;
+var ambientLight;
+var dirLightAlpha;
+var dirLightBeta;
+var soundON = true;
 
 var k_dissip  = 0.8;
 var k_dissip_pal = 0.95;
 var nFrame = 0;
-
-//Forse non funziona ?????
-var coll = true;
-
 
 // SHADER
 var vs = `#version 300 es
@@ -76,9 +76,8 @@ uniform mat4 nMatrix;
 uniform mat4 matrix;
 uniform vec3 lightColor;
 uniform vec3 lightDirection;
-uniform vec3 specularColor;
-uniform float SpecShine;
 uniform vec3 ambientLightcolor;
+
 
 void main() {
   uvFS = a_uv;
@@ -88,7 +87,6 @@ void main() {
   // specular
   //in camera space eyePos = [0,0,0] so eyeDir = normalize(-inPosition)
 	vec3 eyeDir = normalize( - inPosition);
-	// vec3 halfVec = normalize(eyeDir + lightDirection);
 	vec3 reflectDir = reflect(lightDirection, fsNormal);
   specular = specularColor * pow(max(dot(eyeDir, reflectDir),0.0),SpecShine);
   finalColor = vec4(clamp((diffuse * lightColor) + specular + ambientLightcolor, 0.0, 1.0),1.0);
@@ -110,7 +108,8 @@ uniform sampler2D u_texture;
 void main() {
   vec4 color = vec4(finalColor.rgb,alpha);
   vec4 outColorfs = texture(u_texture, uvFS) * color;
-  outColor = outColorfs + vec4(specular, 1.0);
+  outColor = outColorfs + vec4(specular, 0.0);
+
 }`;
 
 
@@ -134,9 +133,9 @@ async function main(){
   var bumpModel = new OBJ.Mesh(bumpObjStr);
 
   // LIGHTS
-  var dirLightAlpha = -utils.degToRad(-60);
-  var dirLightBeta  = -utils.degToRad(-60);
-  var ambientLight = [0.3,0.3,0.3];
+  dirLightAlpha = -utils.degToRad(60);
+  dirLightBeta  = -utils.degToRad(120);
+  ambientLight = [0.2,0.2,0.2];
   var directionalLight = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
             Math.sin(dirLightAlpha),
             Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
@@ -150,16 +149,16 @@ async function main(){
   var cylinder1 = new Item("cyl1","./textures/cyl.png", [draw_bumper(bumpModel.vertices), bumpModel.vertexNormals, bumpModel.indices, bumpModel.textures], [1.0,0.0,0.0]);
   var cylinder2 = new Item("cyl2","./textures/cyl.png", [draw_bumper(bumpModel.vertices), bumpModel.vertexNormals, bumpModel.indices, bumpModel.textures], [1.0,0.0,0.0]);
   var cylinder3 = new Item("cyl3","./textures/cyl.png", [draw_bumper(bumpModel.vertices), bumpModel.vertexNormals, bumpModel.indices, bumpModel.textures], [1.0,0.0,0.0]);
-  var table = new Item("table","./textures/table.png", draw_par(15.0, 0.5, 20.0, "table"), [0.0,1.0,0.2]);
-  var paletteL = new dynPalette("paletteL","./textures/paletteL.png", draw_par(3.0, 0.5, 1.0, "paletteL"), [0.2, 0.2, 1.0]);
-  var paletteR = new dynPalette("paletteR","./textures/paletteR.png", draw_par(3.0, 0.5, 1.0, "paletteR"), [0.2, 0.2, 1.0]);
-  var wallL = new Item("wallL","./textures/wall.png", draw_par(1.0 ,1.0 ,20.0, "wallL"), [0.0,1.0,0.2]);
-  var wallR = new Item("wallR","./textures/wall.png", draw_par(1.0 ,1.0 ,20.0, "wallR"), [0.0,1.0,0.2]);
-  var wallU = new Item("wallU","./textures/wall.png", draw_par(15.0 ,5.5, 0.5, "wallU"), [0.0,1.0,0.2]);
-  var wallD = new Item("wallD","./textures/wall.png", draw_par(13.0 ,1.0 ,0.5, "wallD"), [0.0,1.0,0.2]);
-  var palWallR = new Item("palWallR","./textures/relowallpal.png", draw_par(4.0,0.5,0.5, "palWallR"), [0.2, 0.2, 1.0]);
-  var palWallL = new Item("palWallL","./textures/relowallpal.png", draw_par(4.0,0.5,0.5, "palWallL"), [0.2, 0.2, 1.0]);
-  var reloader = new Item("reloader","./textures/relowallpal.png", draw_par(3.0,0.5,0.5, "reloader"),[1.0, 0.2, 0.0]);
+  var table = new Item("table","./textures/table.png", draw_par(15.0, 0.5, 20.0, "table"), [0.0,0.0,1.0]);
+  var paletteL = new dynPalette("paletteL","./textures/paletteL.png", draw_par(3.0, 0.5, 1.0, "paletteL"), [0.278, 0.278, 0.278]);
+  var paletteR = new dynPalette("paletteR","./textures/paletteR.png", draw_par(3.0, 0.5, 1.0, "paletteR"), [0.278, 0.278, 0.278]);
+  var wallL = new Item("wallL","./textures/wall.png", draw_par(1.0 ,1.0 ,20.0, "wallL"), [0.0,0.0,1.0]);
+  var wallR = new Item("wallR","./textures/wall.png", draw_par(1.0 ,1.0 ,20.0, "wallR"), [0.0,0.0,1.0]);
+  var wallU = new Item("wallU","./textures/wall.png", draw_par(15.0 ,5.5, 0.5, "wallU"), [0.0,0.0,1.0]);
+  var wallD = new Item("wallD","./textures/wall.png", draw_par(13.0 ,1.0 ,0.5, "wallD"), [0.0,0.0,1.0]);
+  var palWallR = new Item("palWallR","./textures/relowallpal.png", draw_par(4.0,0.5,0.5, "palWallR"), [0.278, 0.278, 0.278]);
+  var palWallL = new Item("palWallL","./textures/relowallpal.png", draw_par(4.0,0.5,0.5, "palWallL"), [0.278, 0.278, 0.278]);
+  var reloader = new Item("reloader","./textures/relowallpal.png", draw_par(3.0,0.5,0.5, "reloader"),[0.278, 0.278, 0.278]);
   var score = new Item("score", "./textures/wallS.png", draw_squares(8), [1.0,1.0,1.0]);
 
   objects.push(ball, cylinder1, cylinder2, cylinder3, table, paletteL, paletteR, wallL, wallR, wallU, wallD, palWallR, palWallL,reloader, score);
@@ -235,9 +234,9 @@ async function main(){
   var materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');
   var lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
   var lightColorHandle = gl.getUniformLocation(program, 'lightColor');
+  var ambientLightcolorHandle = gl.getUniformLocation(program, 'ambientLightcolor');
   var specularColorHandle = gl.getUniformLocation(program,'specularColor');
   var specShineHandle = gl.getUniformLocation(program,'SpecShine');
-  var ambientLightcolorHandle = gl.getUniformLocation(program, 'ambientLightcolor');
   perspectiveMatrix = utils.MakePerspective(90, gl.canvas.width/gl.canvas.height, 0.1, 100.0);
   alphaLocation = gl.getUniformLocation(program, 'alpha');
 
@@ -315,7 +314,6 @@ async function main(){
   currentTime = (new Date).getTime();
   let deltaT = currentTime - lastUpdateTime;
 
-
   // BALL Animation
   //Change ball color from slider
   ball.col = ballCol;
@@ -354,7 +352,7 @@ async function main(){
   //Reset Ball position when R is pressed
   if(lastUpdateTime && recentered){
     scoreNum = 0;
-    if(rUP){audioReloader.play();}
+    if(rUP){if(soundON){audioReloader.play();}}
     ball.set_pos(utils.MakeWorld(9.5,1.5,-14.7,0.0,0.0,0.0,1.0));
     ball.set_vel([-reloaderSpeed,0.0,reloaderSpeed]);
   }
@@ -407,6 +405,10 @@ async function main(){
 
 
     //CAMERA SPACE
+    directionalLight = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
+              Math.sin(dirLightAlpha),
+              Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
+              ];
     var lightDirMatrix = utils.invertMatrix(utils.transposeMatrix(viewMatrix));
     var lightDirectionTransformed = utils.multiplyMatrix3Vector3(utils.sub3x3from4x4(lightDirMatrix),directionalLight);
 
@@ -419,15 +421,15 @@ async function main(){
 
       gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(worldViewProjection));
 
-      gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(objects[i].worldM));
+      gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(worldViewMatrix));
       gl.uniform1f(alphaLocation, 1.0);
 
+      gl.uniform3fv(lightColorHandle,  directionalLightColor);
+      gl.uniform3fv(lightDirectionHandle,  lightDirectionTransformed);
+      gl.uniform3fv(ambientLightcolorHandle, ambientLight);
       gl.uniform3fv(specularColorHandle,  [1.0,1.0,1.0]);
       gl.uniform1f(specShineHandle, 64.0);
-      gl.uniform3fv(lightColorHandle,  directionalLightColor);
-      gl.uniform3fv(lightDirectionHandle,  directionalLight);
-      gl.uniform3fv(ambientLightcolorHandle, ambientLight);
-
+      
       //Set transparency for the Down WALL
       if(objects[i].name == "wallD" ){ gl.uniform1f(alphaLocation, 0.2); }
 
