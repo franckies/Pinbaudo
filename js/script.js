@@ -69,6 +69,7 @@ in vec3 inNormal;
 in vec2 a_uv;
 out vec4 finalColor;
 out vec2 uvFS;
+out vec3 specular;
 
 uniform vec3 mDiffColor;
 uniform mat4 nMatrix;
@@ -82,8 +83,13 @@ void main() {
   uvFS = a_uv;
   vec3 fsNormal = (nMatrix * vec4(inNormal,0.0)).xyz;
   //diffuse
-  vec3 diffuse = mDiffColor * max(-dot(lightDirection, normalize(fsNormal)), 0.0);
-  finalColor = vec4(clamp((diffuse* lightColor)  + ambientLightcolor, 0.0, 1.0),1.0);
+  vec3 diffuse = mDiffColor * max(dot(normalize(fsNormal), lightDirection), 0.0);
+  // specular
+  //in camera space eyePos = [0,0,0] so eyeDir = normalize(-inPosition)
+	vec3 eyeDir = normalize( - inPosition);
+	vec3 reflectDir = reflect(lightDirection, fsNormal);
+  specular = specularColor * pow(max(dot(eyeDir, reflectDir),0.0),SpecShine);
+  finalColor = vec4(clamp((diffuse * lightColor) + specular + ambientLightcolor, 0.0, 1.0),1.0);
   gl_Position = matrix * vec4(inPosition, 1.0);
 }`;
 
@@ -93,6 +99,7 @@ precision mediump float;
 
 in vec4 finalColor;
 in vec2 uvFS;
+in vec3 specular;
 out vec4 outColor;
 
 uniform float alpha;
@@ -100,7 +107,9 @@ uniform sampler2D u_texture;
 
 void main() {
   vec4 color = vec4(finalColor.rgb,alpha);
-  outColor = texture(u_texture, uvFS) * color;;
+  vec4 outColorfs = texture(u_texture, uvFS) * color;
+  outColor = outColorfs + vec4(specular, 0.0);
+
 }`;
 
 
@@ -226,6 +235,8 @@ async function main(){
   var lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
   var lightColorHandle = gl.getUniformLocation(program, 'lightColor');
   var ambientLightcolorHandle = gl.getUniformLocation(program, 'ambientLightcolor');
+  var specularColorHandle = gl.getUniformLocation(program,'specularColor');
+  var specShineHandle = gl.getUniformLocation(program,'SpecShine');
   perspectiveMatrix = utils.MakePerspective(90, gl.canvas.width/gl.canvas.height, 0.1, 100.0);
   alphaLocation = gl.getUniformLocation(program, 'alpha');
 
@@ -416,7 +427,9 @@ async function main(){
       gl.uniform3fv(lightColorHandle,  directionalLightColor);
       gl.uniform3fv(lightDirectionHandle,  lightDirectionTransformed);
       gl.uniform3fv(ambientLightcolorHandle, ambientLight);
-
+      gl.uniform3fv(specularColorHandle,  [1.0,1.0,1.0]);
+      gl.uniform1f(specShineHandle, 64.0);
+      
       //Set transparency for the Down WALL
       if(objects[i].name == "wallD" ){ gl.uniform1f(alphaLocation, 0.2); }
 
