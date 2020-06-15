@@ -55,16 +55,35 @@
    <br>
  </div>
  <br>
- <b> Enable Dark Mode </b><br>
-   <input type="checkbox" id="chbx" onclick="onCheckBoxChange(this.checked);"/> Dark Mode<br/>
-  <br>
+ <b> Change Light Dir </b>
+ <div id="slider2">
+   <input type="range" min="0" max="360" step="1" value="60" onchange="onSliderChange1(this.value);"/> alpha
+   <input type="range" min="0" max="360" step="1" value="120" onchange="onSliderChange2(this.value);"/> beta
+   <br>
+ </div>
+ <br>
+ <div id="slider3">
+   <b> Change Light color </b><br>
+    <input type="color" id="lightcol" value="#ffffff" onChange = "onLightColorChange(this.value)">
+    <br>
+ </div>
+ <br>
+ <b>Change Ambient Light</b>
+ <div id="slider4">
+   <input type="color" id="favcolor" name="favcolor" value="#757575" onChange = "onAmbientColorChange(this.value)">
+   <br>
+ </div>
+ <br>
   <b> Enable Textures </b><br>
    <input type="checkbox" id="chbx" onclick="onTexturesChecked(this.checked);" checked/> Textures<br/>
+   <br>
+   <b> Enable sound </b><br>
+     <input type="checkbox" id="chbx" onclick="onSoundBoxChange(this.checked);" checked/> Sound ON<br/>
  </td>
 </div>
 
 <div id = "FPSpanel">
-  <h3>FPS</h3>
+  <p>FPS:  </p>
   <p id= "FPS">  </p>
 </div>
 
@@ -127,13 +146,20 @@ function onRadioButtonChange(value){
   if(value ==2){k_dissip = 0.8;}
   if(value ==3){k_dissip = 1.0;}
 }
-function onCheckBoxChange(value){
-  if(value){directionalLightColor = [0.5,0.5,0.5];}
-  if(!value){directionalLightColor = [1.0,1.0,1.0]}
+function onLightColorChange(value){
+  let result = HEX2RGB(value);
+  var r = result[0]/255.0;
+  var g = result[1]/255.0;
+  var b = result[2]/255.0;
+  directionalLightColor = [r,g,b];
 }
 function onTexturesChecked(value){
   if(value){texturesEnabled = true;}
   if(!value){texturesEnabled = false;}
+}
+function onSoundBoxChange(value){
+  if(value){soundON = true;}
+  if(!value){soundON = false;}
 }
 function onColorChange(value){
   let result = HEX2RGB(value);
@@ -141,6 +167,19 @@ function onColorChange(value){
   var g = result[1]/255.0;
   var b = result[2]/255.0;
   ballCol = [r,g,b];
+}
+function onAmbientColorChange(value){
+  let result = HEX2RGB(value);
+  var r = result[0]/255.0;
+  var g = result[1]/255.0;
+  var b = result[2]/255.0;
+  ambientLight = [r,g,b];
+}
+function onSliderChange1(value){
+  dirLightAlpha = -utils.degToRad(value);
+}
+function onSliderChange2(value){
+  dirLightBeta = -utils.degToRad(value);
 }
 before = 0.0;
 requestAnimationFrame(

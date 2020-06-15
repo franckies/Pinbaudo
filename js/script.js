@@ -52,12 +52,16 @@ var cylCol1 = [1.0,0.0,0.0];
 var cylCol2 = [1.0,0.0,0.0];
 var cylCol3 = [1.0,0.0,0.0];
 var directionalLightColor;
+var ambientLight;
+var dirLightAlpha;
+var dirLightBeta;
+var soundON = true;
 
 var k_dissip  = 0.8;
 var k_dissip_pal = 0.95;
 var nFrame = 0;
 
-// VERTEX SHADER
+// SHADER
 var vs = `#version 300 es
 
 in vec3 inPosition;
@@ -73,12 +77,13 @@ uniform vec3 lightColor;
 uniform vec3 lightDirection;
 uniform vec3 ambientLightcolor;
 
+
 void main() {
   uvFS = a_uv;
   vec3 fsNormal = (nMatrix * vec4(inNormal,0.0)).xyz;
   //diffuse
   vec3 diffuse = mDiffColor * max(-dot(lightDirection, normalize(fsNormal)), 0.0);
-  finalColor = vec4(clamp((diffuse) * lightColor + ambientLightcolor, 0.0, 1.0),1.0);
+  finalColor = vec4(clamp((diffuse* lightColor)  + ambientLightcolor, 0.0, 1.0),1.0);
   gl_Position = matrix * vec4(inPosition, 1.0);
 }`;
 
@@ -95,7 +100,7 @@ uniform sampler2D u_texture;
 
 void main() {
   vec4 color = vec4(finalColor.rgb,alpha);
-  outColor = texture(u_texture, uvFS) * color;
+  outColor = texture(u_texture, uvFS) * color;;
 }`;
 
 
@@ -119,9 +124,9 @@ async function main(){
   var bumpModel = new OBJ.Mesh(bumpObjStr);
 
   // LIGHTS
-  var dirLightAlpha = -utils.degToRad(60);
-  var dirLightBeta  = -utils.degToRad(120);
-  var ambientLight = [0.3,0.3,0.3];
+  dirLightAlpha = -utils.degToRad(60);
+  dirLightBeta  = -utils.degToRad(120);
+  ambientLight = [0.2,0.2,0.2];
   var directionalLight = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
             Math.sin(dirLightAlpha),
             Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
@@ -336,7 +341,7 @@ async function main(){
   //Reset Ball position when R is pressed
   if(lastUpdateTime && recentered){
     scoreNum = 0;
-    if(rUP){audioReloader.play();}
+    if(rUP){if(soundON){audioReloader.play();}}
     ball.set_pos(utils.MakeWorld(9.5,1.5,-14.7,0.0,0.0,0.0,1.0));
     ball.set_vel([-reloaderSpeed,0.0,reloaderSpeed]);
   }
@@ -389,6 +394,10 @@ async function main(){
 
 
     //CAMERA SPACE
+    directionalLight = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
+              Math.sin(dirLightAlpha),
+              Math.cos(dirLightAlpha) * Math.sin(dirLightBeta)
+              ];
     var lightDirMatrix = utils.invertMatrix(utils.transposeMatrix(viewMatrix));
     var lightDirectionTransformed = utils.multiplyMatrix3Vector3(utils.sub3x3from4x4(lightDirMatrix),directionalLight);
 
