@@ -57,8 +57,8 @@
  <br>
  <b> Change Light Dir </b>
  <div id="slider2">
-   <input type="range" min="0" max="360" step="1" value="60" onchange="onSliderChange1(this.value);"/> alpha
-   <input type="range" min="0" max="360" step="1" value="120" onchange="onSliderChange2(this.value);"/> beta
+   <input type="range" min="0" max="360" step="1" value="50" onchange="onSliderChange1(this.value);"/> alpha
+   <input type="range" min="0" max="360" step="1" value="100" onchange="onSliderChange2(this.value);"/> beta
    <br>
  </div>
  <br>
@@ -176,10 +176,10 @@ function onAmbientColorChange(value){
   ambientLight = [r,g,b];
 }
 function onSliderChange1(value){
-  dirLightAlpha = -utils.degToRad(value);
+  dirLightAlpha = utils.degToRad(value);
 }
 function onSliderChange2(value){
-  dirLightBeta = -utils.degToRad(value);
+  dirLightBeta = utils.degToRad(value);
 }
 before = 0.0;
 requestAnimationFrame(

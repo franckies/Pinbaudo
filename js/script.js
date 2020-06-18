@@ -72,22 +72,25 @@ out vec2 uvFS;
 out vec3 specular;
 
 uniform vec3 mDiffColor;
-uniform mat4 nMatrix;
 uniform mat4 matrix;
+uniform mat4 worldviewmatrix;
 uniform vec3 lightColor;
 uniform vec3 lightDirection;
 uniform vec3 ambientLightcolor;
+uniform vec3 specularColor;
+uniform float SpecShine;
 
 
 void main() {
   uvFS = a_uv;
-  vec3 fsNormal = (nMatrix * vec4(inNormal,0.0)).xyz;
+  vec3 fsNormal = (worldviewmatrix * vec4(inNormal,0.0)).xyz;
   //diffuse
   vec3 diffuse = mDiffColor * max(dot(normalize(fsNormal), lightDirection), 0.0);
   // specular
   //in camera space eyePos = [0,0,0] so eyeDir = normalize(-inPosition)
-	vec3 eyeDir = normalize( - inPosition);
-	vec3 reflectDir = reflect(lightDirection, fsNormal);
+  //inPosition è in object space quindi dobbiamo passare una matrice worldview da moltiplicare
+	vec3 eyeDir = normalize( - mat3(worldviewmatrix) * inPosition);
+	vec3 reflectDir = normalize(reflect(lightDirection, fsNormal));
   specular = specularColor * pow(max(dot(eyeDir, reflectDir),0.0),SpecShine);
   finalColor = vec4(clamp((diffuse * lightColor) + specular + ambientLightcolor, 0.0, 1.0),1.0);
   gl_Position = matrix * vec4(inPosition, 1.0);
@@ -133,8 +136,8 @@ async function main(){
   var bumpModel = new OBJ.Mesh(bumpObjStr);
 
   // LIGHTS
-  dirLightAlpha = -utils.degToRad(60);
-  dirLightBeta  = -utils.degToRad(120);
+  dirLightAlpha = utils.degToRad(50);
+  dirLightBeta  = utils.degToRad(100);
   ambientLight = [0.2,0.2,0.2];
   var directionalLight = [Math.cos(dirLightAlpha) * Math.cos(dirLightBeta),
             Math.sin(dirLightAlpha),
@@ -229,8 +232,8 @@ async function main(){
   var normalAttributeLocation = gl.getAttribLocation(program, "inNormal");
   var uvAttributeLocation = gl.getAttribLocation(program, "a_uv");
   var matrixLocation = gl.getUniformLocation(program, "matrix");
+  var worldviewmatrixLocation = gl.getUniformLocation(program, "worldviewmatrix");
   var textLocation = gl.getUniformLocation(program, "u_texture");
-  var normalMatrixPositionHandle = gl.getUniformLocation(program, 'nMatrix');
   var materialDiffColorHandle = gl.getUniformLocation(program, 'mDiffColor');
   var lightDirectionHandle = gl.getUniformLocation(program, 'lightDirection');
   var lightColorHandle = gl.getUniformLocation(program, 'lightColor');
@@ -420,8 +423,7 @@ async function main(){
       var worldViewProjection = utils.multiplyMatrices(perspectiveMatrix, worldViewMatrix);
 
       gl.uniformMatrix4fv(matrixLocation, gl.FALSE, utils.transposeMatrix(worldViewProjection));
-
-      gl.uniformMatrix4fv(normalMatrixPositionHandle, gl.FALSE, utils.transposeMatrix(worldViewMatrix));
+      gl.uniformMatrix4fv(worldviewmatrixLocation, gl.FALSE, utils.transposeMatrix(worldViewMatrix));
       gl.uniform1f(alphaLocation, 1.0);
 
       gl.uniform3fv(lightColorHandle,  directionalLightColor);
@@ -429,7 +431,7 @@ async function main(){
       gl.uniform3fv(ambientLightcolorHandle, ambientLight);
       gl.uniform3fv(specularColorHandle,  [1.0,1.0,1.0]);
       gl.uniform1f(specShineHandle, 64.0);
-      
+
       //Set transparency for the Down WALL
       if(objects[i].name == "wallD" ){ gl.uniform1f(alphaLocation, 0.2); }
 
